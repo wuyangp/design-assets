@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Animation Handoff — Conversation Lessons Buttons</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popmotion/11.0.5/popmotion.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #FFFFFF; --card: #F9FAFB; --card-border: #E5E7EB;
+    --text: #1F2937; --muted: #6B7280; --accent: #4F46E5;
+    /* Button states — exact Figma tokens */
+    --btn-default-bg: #FFFFFF;
+    --btn-default-text: rgba(0,0,0,0.9);
+    --btn-default-shadow: 0px 0px 2px 0px rgba(0,0,0,0.12), 0px 2px 8px 0px rgba(0,0,0,0.08);
+    --btn-correct-bg: #E5F7F2; --btn-correct-border: #94E0CA; --btn-correct-text: #219A77;
+    --btn-incorrect-bg: #FFEDE6; --btn-incorrect-border: #FDC2AD; --btn-incorrect-text: #CA6A49;
+    --btn-disabled-bg: #E9E9E9; --btn-disabled-text: rgba(0,0,0,0.3);
+    --btn-pressed-bg: rgba(213,218,223,0.5); --btn-pressed-text: rgba(0,0,0,0.9);
+    --btn-selected-bg: #DDE4FF; --btn-selected-border: #8DA4FF; --btn-selected-text: rgba(0,0,0,0.9);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  .header { margin-bottom: 40px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .header p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .meta-row { display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
+  .meta-tag { font-size: 12px; color: var(--muted); background: #F3F4F6; padding: 4px 10px; border-radius: 6px; }
+  .meta-tag strong { color: var(--text); }
+
+  .section { margin-bottom: 48px; }
+  .section h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .section h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--muted); margin-top: 24px; }
+  .section .desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Tables */
+  .token-table, .spec-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+  .token-table th, .spec-table th { text-align: left; font-weight: 600; padding: 10px 14px; background: #F9FAFB; border-bottom: 2px solid #E5E7EB; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .token-table td, .spec-table td { padding: 10px 14px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+  .swatch { display: inline-block; width: 20px; height: 20px; border-radius: 4px; vertical-align: middle; margin-right: 8px; border: 1px solid rgba(0,0,0,0.08); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #F3F4F6; padding: 2px 6px; border-radius: 4px; }
+
+  /* Demo */
+  .demo-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; margin-bottom: 20px; }
+  .demo-area { display: flex; justify-content: center; align-items: center; min-height: 100px; margin-bottom: 20px; }
+
+  /* Figma button — exact specs */
+  .figma-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 370px; padding: 24px 16px; border-radius: 16px;
+    font-size: 18px; font-weight: 600; line-height: 22px; letter-spacing: 0px;
+    font-family: "SF Pro Display", -apple-system, sans-serif;
+    cursor: pointer; outline: none; user-select: none;
+    background: var(--btn-default-bg); border: 2px solid transparent;
+    color: var(--btn-default-text); box-shadow: var(--btn-default-shadow);
+    transform-origin: center; min-height: 72px;
+  }
+  .figma-btn.state-correct {
+    background: var(--btn-correct-bg); border: 2px solid var(--btn-correct-border);
+    color: var(--btn-correct-text); box-shadow: none;
+  }
+  .figma-btn.state-incorrect {
+    background: var(--btn-incorrect-bg); border: 1.5px solid var(--btn-incorrect-border);
+    color: var(--btn-incorrect-text); box-shadow: none;
+  }
+  .figma-btn.state-disabled {
+    background: var(--btn-disabled-bg); border: 2px solid transparent;
+    color: var(--btn-disabled-text); box-shadow: none; cursor: default;
+  }
+  .figma-btn.state-pressed {
+    background: var(--btn-pressed-bg); border: 2px solid transparent;
+    color: var(--btn-pressed-text); box-shadow: var(--btn-default-shadow);
+  }
+  .figma-btn.state-selected {
+    background: var(--btn-selected-bg); border: 2px solid var(--btn-selected-border);
+    color: var(--btn-selected-text); box-shadow: none;
+  }
+  .figma-btn.long-text {
+    text-align: left; height: auto; min-height: 72px;
+  }
+  .figma-btn.long-text .text-clamp {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; white-space: normal;
+  }
+
+  /* Tap-to-build chip button */
+  .chip-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 16px; border-radius: 16px;
+    font-size: 18px; font-weight: 600; line-height: 22px; letter-spacing: 0px;
+    font-family: "SF Pro Display", -apple-system, sans-serif;
+    cursor: pointer; outline: none; user-select: none;
+    background: #FFFFFF; border: 2px solid transparent;
+    color: rgba(0,0,0,0.9);
+    box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.12), 0px 4px 18px 0px rgba(0,0,0,0.08);
+    transform-origin: center; transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  .chip-btn.state-correct {
+    background: #E5F7F2; border: 2px solid #94E0CA;
+    color: #219A77; box-shadow: none;
+  }
+  .chip-btn.state-incorrect {
+    background: #FFEDE6; border: 1.5px solid #FDC2AD;
+    color: #CA6A49; box-shadow: none;
+  }
+  .chip-btn.state-ghost {
+    background: #E9E9E9; border: 2px solid transparent;
+    color: transparent; box-shadow: none; cursor: default;
+  }
+
+  .btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .btn-play { padding: 8px 20px; border-radius: 8px; border: none; background: var(--accent); color: #FFF; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-play:hover { opacity: 0.9; }
+  .btn-inc { padding: 8px 20px; border-radius: 8px; border: none; background: #CA6A49; color: #FFF; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-inc:hover { opacity: 0.9; }
+  .btn-sel { padding: 8px 20px; border-radius: 8px; border: none; background: #8DA4FF; color: #FFF; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-sel:hover { opacity: 0.9; }
+  .btn-press { padding: 8px 20px; border-radius: 8px; border: none; background: rgba(213,218,223,0.8); color: rgba(0,0,0,0.7); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-press:hover { opacity: 0.9; }
+  .btn-reset { padding: 8px 16px; border-radius: 8px; border: 1px solid #D1D5DB; background: #FFF; color: var(--muted); font-size: 12px; cursor: pointer; }
+  .tap-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  /* Flow diagram */
+  .flow-diagram { display: flex; align-items: center; gap: 12px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; }
+  .flow-arrow { color: var(--muted); font-size: 18px; }
+  .flow-label { font-size: 10px; color: var(--muted); display: block; font-weight: 400; margin-top: 2px; }
+
+  /* Code */
+  .code-block {
+    background: #1E1E2E; border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7;
+    color: #CDD6F4; overflow-x: auto; white-space: pre;
+  }
+  .code-block .c { color: #6C7086; }
+  .code-block .k { color: #CBA6F7; }
+  .code-block .s { color: #A6E3A1; }
+  .code-block .n { color: #FAB387; }
+  .code-block .f { color: #89B4FA; }
+  .code-block .p { color: #F38BA8; }
+  .code-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+  /* Links */
+  .links-card { display: flex; gap: 16px; flex-wrap: wrap; }
+  .link-item { flex: 1; min-width: 250px; padding: 16px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--card); }
+  .link-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .link-item p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .link-item a { color: var(--accent); font-size: 12px; text-decoration: none; font-weight: 500; }
+  .link-item a:hover { text-decoration: underline; }
+
+  /* States grid */
+  .states-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .state-card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .state-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Tap-to-build demo */
+  .ttb-sentence { background: white; border-radius: 24px; padding: 8px; width: 370px; margin: 0 auto 16px; min-height: 70px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
+  .ttb-sentence .placeholder { color: rgba(0,0,0,0.3); font-size: 16px; font-family: "SF Pro Text", -apple-system, sans-serif; font-weight: 500; }
+  .ttb-words { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 370px; margin: 0 auto; }
+
+  /* Matching pair button */
+  .match-btn {
+    display: flex; align-items: center; justify-content: center;
+    flex: 1 0 0; padding: 24px 16px; border-radius: 16px;
+    font-size: 18px; font-weight: 600; line-height: 22px;
+    font-family: "SF Pro Display", -apple-system, sans-serif;
+    cursor: pointer; outline: none; user-select: none;
+    background: var(--btn-default-bg); border: 2px solid transparent;
+    color: var(--btn-default-text); box-shadow: var(--btn-default-shadow);
+    min-height: 70px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  /* Scale from center for all match buttons */
+  .match-btn.match-left { transform-origin: center; }
+  .match-btn.match-right { transform-origin: center; }
+  .match-btn.state-selected {
+    background: var(--btn-selected-bg); border: 2px solid var(--btn-selected-border);
+    color: var(--btn-selected-text); box-shadow: none;
+  }
+  .match-btn.state-correct {
+    background: var(--btn-correct-bg); border: 2px solid var(--btn-correct-border);
+    color: var(--btn-correct-text); box-shadow: none;
+  }
+  .match-btn.state-incorrect {
+    background: var(--btn-incorrect-bg); border: 1.5px solid var(--btn-incorrect-border);
+    color: var(--btn-incorrect-text); box-shadow: none;
+  }
+  /* Submit / Skip buttons (tap-to-build) */
+  .ttb-submit {
+    display: flex; align-items: center; justify-content: center;
+    width: 370px; padding: 16px; border-radius: 16px; border: none;
+    background: #1C49FF; color: white;
+    font-family: "SF Pro Text", -apple-system, sans-serif;
+    font-size: 16px; font-weight: 500; line-height: 20px; letter-spacing: -0.4px;
+    cursor: pointer; margin: 16px auto 0; transition: opacity 0.15s;
+  }
+  .ttb-submit:hover { opacity: 0.9; }
+  .ttb-submit.hidden { display: none; }
+  .ttb-skip {
+    display: flex; align-items: center; justify-content: center;
+    width: 370px; padding: 16px; border-radius: 16px; border: none;
+    background: rgba(213, 218, 223, 0.35); color: rgba(0,0,0,0.9);
+    font-family: "SF Pro Text", -apple-system, sans-serif;
+    font-size: 16px; font-weight: 500; line-height: 20px; letter-spacing: -0.4px;
+    cursor: pointer; margin: 16px auto 0; transition: opacity 0.15s;
+  }
+  .ttb-skip:hover { opacity: 0.8; }
+  .ttb-skip.hidden { display: none; }
+
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 370px; margin: 0 auto; }
+  .match-col { display: flex; flex-direction: column; gap: 8px; }
+  .match-btn .speaker-icon { width: 24px; height: 24px; flex-shrink: 0; }
+  .match-btn .speaker-icon path { fill: rgba(0,0,0,0.55); }
+  .match-btn.state-selected .speaker-icon path { fill: rgba(0,0,0,0.9); }
+  .match-btn.state-correct .speaker-icon path { fill: #219A77; }
+  .match-btn.state-incorrect .speaker-icon path { fill: #CA6A49; }
+
+  /* Correct state needs overflow visible for glow */
+  .figma-btn, .chip-btn, .match-btn { position: relative; overflow: visible; }
+
+  /* Table of contents */
+  .toc { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+  .toc-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px; }
+  .toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .toc-list li a {
+    display: inline-block; padding: 6px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+    text-decoration: none; background: #FFF; border: 1px solid #E5E7EB;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toc-list li a:hover { background: #EEF2FF; border-color: var(--accent); color: var(--accent); }
+
+  /* Callout banner */
+  .callout {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 40px; display: flex; gap: 12px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .callout-text { font-size: 13px; color: #92400E; line-height: 1.6; }
+  .callout-text strong { color: #78350F; }
+  .callout-text a { color: #92400E; text-decoration: underline; }
+
+  /* Smooth scroll */
+  html { scroll-behavior: smooth; }
+
+  hr { border: none; height: 1px; background: #E5E7EB; margin: 40px 0; }
+
+  /* Glow Tuner Panel */
+  .tuner-panel {
+    background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px;
+    padding: 20px 24px; margin-top: 20px;
+  }
+  .tuner-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted); margin-bottom: 16px;
+  }
+  .tuner-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px;
+  }
+  .tuner-row {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .tuner-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .tuner-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent); background: #EEF2FF; padding: 2px 6px;
+    border-radius: 4px; min-width: 48px; text-align: center;
+  }
+  .tuner-row input[type="range"] {
+    width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+    background: #E5E7EB; border-radius: 3px; outline: none; cursor: pointer;
+  }
+  .tuner-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; border: 2px solid #FFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .tuner-row input[type="color"] {
+    width: 32px; height: 24px; border: 1px solid #E5E7EB;
+    border-radius: 4px; cursor: pointer; padding: 0;
+  }
+  .tuner-color-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tuner-color-hex {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--muted);
+  }
+  .tuner-code {
+    margin-top: 16px; background: #1E1E2E; border-radius: 10px;
+    padding: 14px 18px; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; line-height: 1.6; color: #CDD6F4;
+    white-space: pre; overflow-x: auto;
+  }
+  .tuner-actions {
+    display: flex; gap: 8px; margin-top: 12px; align-items: center;
+  }
+  .tuner-toggle {
+    margin-top: 24px; border-radius: 12px; border: 1px dashed #D1D5DB;
+  }
+  .tuner-toggle[open] { border-style: solid; border-color: #E5E7EB; }
+  .tuner-toggle[open] .tuner-panel { margin-top: 0; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0; }
+  .tuner-summary {
+    padding: 14px 20px; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--muted); list-style: none; display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .tuner-summary::-webkit-details-marker { display: none; }
+  .tuner-summary::before {
+    content: "▸"; font-size: 14px; transition: transform 0.15s;
+  }
+  .tuner-toggle[open] .tuner-summary::before { transform: rotate(90deg); }
+  .tuner-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #92400E; background: #FEF3C7; padding: 3px 8px; border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <h1>Animation Handoff — Tap Button States</h1>
+    <p>Conversation Lessons — Multi-select, Matching Pairs, Tap to Build exercises.<br>
+    Animated button transitions for correct and incorrect answer states using Popmotion v11.</p>
+    <div class="meta-row">
+      <span class="meta-tag"><strong>Library:</strong> popmotion@11.x</span>
+      <span class="meta-tag"><strong>Install:</strong> npm install popmotion</span>
+      <span class="meta-tag"><strong>Framework:</strong> React 18+</span>
+      <span class="meta-tag"><strong>Date:</strong> April 8, 2026</span>
+    </div>
+  </div>
+
+  <!-- ═══ CALLOUT ═══ -->
+  <div class="callout">
+    <span class="callout-icon">⚠</span>
+    <div class="callout-text">
+      <strong>This handoff covers interaction logic, animation specs, and motion only.</strong> All text styles, colors, fills, and visual styling are not included — please reference the <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=4193-31418&t=1He1WdvdMyUYCmgn-1" target="_blank">Figma file</a> directly for those. Layout specs (spacing, radius, shadow) are documented where relevant.
+    </div>
+  </div>
+
+  <!-- ═══ TABLE OF CONTENTS ═══ -->
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ul class="toc-list">
+      <li><a href="#sec-states">1. Button States</a></li>
+      <li><a href="#sec-correct">2. Correct Animation</a></li>
+      <li><a href="#sec-incorrect">3. Incorrect Animation</a></li>
+      <li><a href="#sec-multi">4. Multi-Choice Buttons</a></li>
+      <li><a href="#sec-ttb">5. Tap-to-Build</a></li>
+      <li><a href="#sec-matching">6. Matching Pairs</a></li>
+      <li><a href="#sec-tuner">7. Animation Tuner</a></li>
+      <li><a href="#sec-react">8. React Component</a></li>
+      <li><a href="#sec-links">9. Reference Links</a></li>
+    </ul>
+  </nav>
+
+  <!-- ═══ SECTION 1: ALL BUTTON STATES ═══ -->
+  <div class="section" id="sec-states">
+    <h2>1. Button States</h2>
+    <p class="desc">All six visual states for the tap button, extracted from Figma. Text and color styles should be referenced directly from the Figma file — only layout, spacing, and radius specs are documented here.</p>
+
+    <div class="states-grid">
+      <div class="state-card">
+        <span class="state-label">Default</span>
+        <div class="figma-btn" style="pointer-events:none;">cincuenta</div>
+      </div>
+      <div class="state-card">
+        <span class="state-label">Incorrect</span>
+        <div class="figma-btn state-incorrect" style="pointer-events:none;">cincuenta</div>
+      </div>
+      <div class="state-card">
+        <span class="state-label">Disabled</span>
+        <div class="figma-btn state-disabled" style="pointer-events:none;">cincuenta</div>
+      </div>
+      <div class="state-card">
+        <span class="state-label">Correct</span>
+        <div class="figma-btn state-correct" style="pointer-events:none;">cincuenta</div>
+      </div>
+      <div class="state-card">
+        <span class="state-label">Pressed</span>
+        <div class="figma-btn state-pressed" style="pointer-events:none;">cincuenta</div>
+      </div>
+      <div class="state-card">
+        <span class="state-label">Selected</span>
+        <div class="figma-btn state-selected" style="pointer-events:none;">cincuenta</div>
+      </div>
+    </div>
+
+    <h3>Long Text Wrapping</h3>
+    <p class="desc">Text wraps up to a maximum of 3 lines. Overflow is truncated with ellipsis. The button expands vertically using <code>min-height: 72px</code> instead of a fixed height.</p>
+    <div style="display: flex; justify-content: center; margin: 20px 0;">
+      <div class="figma-btn long-text" style="pointer-events:none;"><span class="text-clamp">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, met, adipiscing nec, ultricies...</span></div>
+    </div>
+
+    <h3>Layout Specs</h3>
+    <p class="desc">For all text styles, colors, and fills — reference the Figma file directly.</p>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Width</td><td><code>370px</code></td><td>Multi-choice &amp; matching pair</td></tr>
+        <tr><td>Min height</td><td><code>72px</code></td><td>Expands with long text (3 lines max)</td></tr>
+        <tr><td>Padding</td><td><code>24px 16px</code></td><td></td></tr>
+        <tr><td>Border radius</td><td><code>16px</code></td><td></td></tr>
+        <tr><td>Text overflow</td><td><code>-webkit-line-clamp: 3</code></td><td>Truncate with ellipsis after 3 lines</td></tr>
+        <tr><td>Shadow (default/pressed/selected)</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)</code></td><td>Removed in correct/incorrect/disabled</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 2: CORRECT ANIMATION ═══ -->
+  <div class="section" id="sec-correct">
+    <h2>2. Correct Answer Animation</h2>
+    <p class="desc">Spring-based scale pop. Button snaps to green immediately on click, simultaneously scales up to 1.04 with a snappy spring, holds briefly, then settles back to 1.0 with a little bounce.</p>
+
+    <h3>State Flow</h3>
+    <div class="flow-diagram">
+      <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">DEFAULT<span class="flow-label">white</span></div>
+      <span class="flow-arrow">→ <span style="font-size:10px">onClick</span> →</span>
+      <div class="flow-box" style="background:#E5F7F2; border: 2px solid #94E0CA; color: #219A77;">CORRECT + Scale Pop<span class="flow-label">green + spring 1.0→1.04→1.0</span></div>
+    </div>
+
+    <h3>Animation Parameters</h3>
+    <table class="spec-table">
+      <thead><tr><th>Channel</th><th>Type</th><th>From → To</th><th>Config</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Color change</strong></td>
+          <td>Instant</td>
+          <td>Default → Green</td>
+          <td>Immediate on click — bg, border, text all switch at once</td>
+        </tr>
+        <tr>
+          <td><strong>Scale up</strong></td>
+          <td>Spring</td>
+          <td><code>1.0 → 1.04</code></td>
+          <td><code>stiffness: 900, damping: 33</code> — very snappy, no overshoot</td>
+        </tr>
+        <tr>
+          <td><strong>Peak hold</strong></td>
+          <td>Delay</td>
+          <td>—</td>
+          <td><code>20ms</code> — minimal dwell at peak before settling</td>
+        </tr>
+        <tr>
+          <td><strong>Scale settle</strong></td>
+          <td>Spring</td>
+          <td><code>1.04 → 1.0</code></td>
+          <td><code>stiffness: 750, damping: 10</code> — quick snap settle with a little bounce</td>
+        </tr>
+        <tr>
+          <td><strong>Shadow</strong></td>
+          <td>Instant</td>
+          <td>Drop shadow → none</td>
+          <td>Removed with color change</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-label">Popmotion v11 Code</div>
+    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+
+<span class="c">// 1. Snap color to green immediately</span>
+el.classList.add(<span class="s">"state-correct"</span>);
+
+<span class="c">// 2. Scale up with quick spring</span>
+<span class="f">animate</span>({
+  <span class="p">from</span>: <span class="n">1.0</span>,
+  <span class="p">to</span>: <span class="n">1.08</span>,
+  <span class="p">type</span>: <span class="s">"spring"</span>,
+  <span class="p">stiffness</span>: <span class="n">600</span>,
+  <span class="p">damping</span>: <span class="n">18</span>,
+  <span class="f">onUpdate</span>(v) {
+    el.style.transform = <span class="s">`scale(${v})`</span>;
+  },
+  <span class="f">onComplete</span>() {
+    <span class="c">// 3. Bounce back to normal</span>
+    <span class="f">animate</span>({
+      <span class="p">from</span>: <span class="n">1.08</span>,
+      <span class="p">to</span>: <span class="n">1.0</span>,
+      <span class="p">type</span>: <span class="s">"spring"</span>,
+      <span class="p">stiffness</span>: <span class="n">500</span>,
+      <span class="p">damping</span>: <span class="n">20</span>,
+      <span class="f">onUpdate</span>(v) {
+        el.style.transform = <span class="s">`scale(${v})`</span>;
+      }
+    });
+  }
+});</div>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 3: INCORRECT ANIMATION ═══ -->
+  <div class="section" id="sec-incorrect">
+    <h2>3. Incorrect Answer Animation</h2>
+    <p class="desc">Rotation jiggle/shake. Button snaps to orange on click, simultaneously plays a decreasing rotation keyframe sequence over 500ms, then transitions to disabled state.</p>
+
+    <h3>State Flow</h3>
+    <div class="flow-diagram">
+      <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">DEFAULT<span class="flow-label">white</span></div>
+      <span class="flow-arrow">→ <span style="font-size:10px">onClick</span> →</span>
+      <div class="flow-box" style="background:#FFEDE6; border: 1.5px solid #FDC2AD; color: #CA6A49;">INCORRECT + Jiggle<span class="flow-label">orange + rotate shake 500ms</span></div>
+      <span class="flow-arrow">→ <span style="font-size:10px">500ms</span> →</span>
+      <div class="flow-box" style="background:#E9E9E9; color: rgba(0,0,0,0.3);">DISABLED<span class="flow-label">gray</span></div>
+    </div>
+
+    <h3>Animation Parameters</h3>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Animation type</td><td>Rotation keyframes (<code>transform: rotate()</code>)</td></tr>
+        <tr><td>Duration</td><td><code>500ms</code></td></tr>
+        <tr><td>Keyframe values</td><td><code>from: 0 → to: [4, -4, 3, -3, 2, -2, 0]</code> degrees</td></tr>
+        <tr><td>Easing</td><td>Popmotion default (eased between keyframes)</td></tr>
+        <tr><td>Transform origin</td><td><code>center</code></td></tr>
+        <tr><td>Post-animation</td><td>Transition to disabled state immediately</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-label">Popmotion v11 Code</div>
+    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+
+<span class="c">// 1. Snap color to orange immediately</span>
+el.classList.add(<span class="s">"state-incorrect"</span>);
+
+<span class="c">// 2. Rotation jiggle — native keyframe array</span>
+<span class="f">animate</span>({
+  <span class="p">from</span>: <span class="n">0</span>,
+  <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>],
+  <span class="p">duration</span>: <span class="n">500</span>,
+  <span class="f">onUpdate</span>(v) {
+    el.style.transform = <span class="s">`rotate(${v}deg)`</span>;
+  },
+  <span class="f">onComplete</span>() {
+    <span class="c">// 3. Transition to disabled state</span>
+    el.style.transform = <span class="s">"rotate(0deg)"</span>;
+    el.classList.remove(<span class="s">"state-incorrect"</span>);
+    el.classList.add(<span class="s">"state-disabled"</span>);
+    el.disabled = <span class="n">true</span>;
+  }
+});</div>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 4: MULTI-CHOICE BUTTONS ═══ -->
+  <div class="section" id="sec-multi">
+    <h2>4. Multi-Choice Buttons</h2>
+    <p class="desc">Single-select answer buttons. Tap to select, then the answer resolves as correct or incorrect. Uses the shared correct (scale pop) and incorrect (rotation jiggle) animations defined in sections 2 and 3.</p>
+
+    <h3>Live Preview</h3>
+    <div class="demo-card">
+      <div class="demo-area">
+        <button class="figma-btn" id="demo-btn">cincuenta</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn-play" id="btn-correct">▶ Correct</button>
+        <button class="btn-inc" id="btn-incorrect">▶ Incorrect</button>
+        <button class="btn-press" id="btn-pressed">▶ Pressed</button>
+        <button class="btn-sel" id="btn-selected">▶ Selected</button>
+        <button class="btn-reset" id="btn-reset">Reset</button>
+      </div>
+      <p class="tap-hint">Tap a state to preview the animation.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 5: TAP TO BUILD ═══ -->
+  <div class="section" id="sec-ttb">
+    <h2>5. Tap-to-Build</h2>
+    <p class="desc">Chip-style word buttons that move between the word bank and the sentence area. Uses the same correct (scale pop) and incorrect (rotation jiggle) animations applied to all chips simultaneously. The chip button is smaller than the multi-choice button with a heavier shadow.</p>
+
+    <h3>Chip Button Specs</h3>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Width</td><td><code>auto</code> (fits content)</td></tr>
+        <tr><td>Padding</td><td><code>16px</code> (all sides)</td></tr>
+        <tr><td>Height</td><td><code>54px</code> (auto)</td></tr>
+        <tr><td>Shadow</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 4px 18px rgba(0,0,0,0.08)</code></td></tr>
+        <tr><td>Border radius</td><td><code>16px</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sentence Container (white box)</h3>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Width</td><td><code>370px</code> (fixed)</td></tr>
+        <tr><td>Height</td><td>Dynamic — grows to fit wrapped chips</td></tr>
+        <tr><td>Padding</td><td><code>8px</code></td></tr>
+        <tr><td>Border radius</td><td><code>24px</code></td></tr>
+        <tr><td>Chip gap</td><td><code>8px</code> (flex-wrap with gap)</td></tr>
+        <tr><td>Layout</td><td><code>display: flex; flex-wrap: wrap; align-items: center;</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Interaction Flow</h3>
+    <div class="flow-diagram" style="flex-direction: column; gap: 16px;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">1. Word Bank<span class="flow-label">all chips default (white)</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">tap word</span> →</span>
+        <div class="flow-box" style="background:#E9E9E9; color: rgba(0,0,0,0.3);">Ghost left behind<span class="flow-label">gray placeholder</span></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">Word in sentence row<span class="flow-label">white chip with × remove</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">submit</span> →</span>
+        <div class="flow-box" style="background:#E5F7F2; border: 2px solid #94E0CA; color: #219A77;">All green + Scale Pop<span class="flow-label">correct answer</span></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">Word in sentence row<span class="flow-label">white chip with × remove</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">submit</span> →</span>
+        <div class="flow-box" style="background:#FFEDE6; border: 1.5px solid #FDC2AD; color: #CA6A49;">All orange + Jiggle<span class="flow-label">incorrect → "Try again..."</span></div>
+      </div>
+    </div>
+
+    <h3>Animations (same as multi-choice)</h3>
+    <p class="desc">Both animations are identical to the multi-choice button specs above, applied to every chip simultaneously (no stagger). The correct scale pop keeps the gap between chips — each chip scales individually, expanding its own width slightly. After an incorrect jiggle, chips reset back to the word bank.</p>
+
+    <div class="code-label">Tap-to-Build — Correct (all chips scale individually, gaps preserved)</div>
+    <div class="code-block"><span class="c">// Each chip scales independently — gaps between chips are preserved</span>
+<span class="c">// The visual effect is that each word "pops" wider briefly</span>
+sentenceChips.forEach(el => {
+  el.classList.add(<span class="s">"state-correct"</span>);
+  <span class="f">animate</span>({
+    <span class="p">from</span>: <span class="n">1.0</span>, <span class="p">to</span>: <span class="n">1.08</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+    <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">18</span>,
+    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; },
+    <span class="f">onComplete</span>() {
+      <span class="f">animate</span>({
+        <span class="p">from</span>: <span class="n">1.08</span>, <span class="p">to</span>: <span class="n">1.0</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+        <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
+        <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+      });
+    }
+  });
+});</div>
+
+    <div class="code-label">Tap-to-Build — Incorrect (all chips → reset)</div>
+    <div class="code-block"><span class="k">let</span> completed = <span class="n">0</span>;
+sentenceChips.forEach(el => {
+  el.classList.add(<span class="s">"state-incorrect"</span>);
+  <span class="f">animate</span>({
+    <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>],
+    <span class="p">duration</span>: <span class="n">500</span>,
+    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; },
+    <span class="f">onComplete</span>() {
+      el.style.transform = <span class="s">"rotate(0deg)"</span>;
+      completed++;
+      <span class="k">if</span> (completed === sentenceChips.length) {
+        <span class="c">// All done — reset chips back to word bank</span>
+        resetToWordBank();
+        showMessage(<span class="s">"Try again..."</span>);
+      }
+    }
+  });
+});</div>
+
+    <h3>Chip Entrance Animation</h3>
+    <p class="desc">When a chip moves into the sentence box, it plays a combined scale + slide-up spring animation for a tactile "landing" feel.</p>
+    <div class="code-label">Chip Entrance — Scale + Slide-up</div>
+    <div class="code-block"><span class="c">// Chip starts invisible, offset 8px below, at 92% scale</span>
+chip.style.opacity = <span class="s">"0"</span>;
+chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
+
+<span class="f">animate</span>({
+  <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: <span class="n">1</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+  <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">24</span>,
+  <span class="f">onUpdate</span>(v) {
+    chip.style.transform = <span class="s">`translateY(${(1 - v) * 8}px) scale(${0.92 + v * 0.08})`</span>;
+    chip.style.opacity = <span class="s">`${v}`</span>;
+  },
+  <span class="f">onComplete</span>() {
+    chip.style.opacity = <span class="s">"1"</span>;
+    chip.style.transform = <span class="s">""</span>;
+  }
+});</div>
+
+    <h3>Submit &amp; Skip Buttons</h3>
+    <p class="desc">Submit appears when the sentence box has at least one chip. It hides when the box is empty. Skip is always visible and resets the exercise.</p>
+    <table class="spec-table">
+      <thead><tr><th>Button</th><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="5"><strong>Submit</strong></td><td>Width</td><td><code>360px</code></td></tr>
+        <tr><td>Height</td><td><code>52px</code> (padding 16px)</td></tr>
+        <tr><td>Background</td><td><code>#1C49FF</code></td></tr>
+        <tr><td>Border radius</td><td><code>16px</code></td></tr>
+        <tr><td>Visibility</td><td>Hidden when sentence box is empty; shown when it has chips</td></tr>
+        <tr><td rowspan="4"><strong>Skip</strong></td><td>Width</td><td><code>370px</code></td></tr>
+        <tr><td>Background</td><td><code>rgba(213, 218, 223, 0.35)</code> — light translucent gray fill</td></tr>
+        <tr><td>Visibility</td><td>Hidden initially. Appears on <strong>3rd incorrect attempt</strong>. Hides when Submit is shown (sentence has chips).</td></tr>
+        <tr><td>Behavior</td><td>Resets sentence box, clears chips, advances to next question</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Interaction Logic</h3>
+    <p class="desc">Tap a word in the bank → it moves into the sentence box (ghost left behind, chip entrance animation). Tap a chip in the sentence box → it returns to the word bank. Submit is shown when the sentence box has at least one chip; hidden when empty. Submit triggers correct or incorrect answer animation. After incorrect, chips reset back to the word bank and placeholder shows "Try again..." Skip button is hidden for the first two attempts. On the 3rd incorrect attempt, Skip appears below the word bank. Skip hides again whenever Submit is visible (sentence box has chips). Tapping Skip resets everything and advances to the next question.</p>
+
+    <h3>Live Preview</h3>
+    <div class="demo-card">
+      <div class="ttb-sentence" id="ttb-sentence">
+        <span class="placeholder" id="ttb-placeholder">Your sentence appears here...</span>
+      </div>
+      <div class="ttb-words" id="ttb-words">
+        <button class="chip-btn" data-word="qué">qué</button>
+        <button class="chip-btn" data-word="le">le</button>
+        <button class="chip-btn" data-word="puedo">puedo</button>
+        <button class="chip-btn" data-word="ofrecer">ofrecer</button>
+        <button class="chip-btn" data-word="con">con</button>
+        <button class="chip-btn" data-word="grande">grande</button>
+      </div>
+      <button class="ttb-submit hidden" id="ttb-submit">Submit</button>
+      <button class="ttb-skip hidden" id="ttb-skip">Skip</button>
+      <div class="btn-row" style="margin-top: 12px;">
+        <span style="font-size: 11px; color: var(--muted); font-weight: 600; margin-right: 4px;">Demo:</span>
+        <button class="btn-play" id="ttb-correct" style="font-size: 11px; padding: 5px 12px;">Force Correct</button>
+        <button class="btn-inc" id="ttb-incorrect" style="font-size: 11px; padding: 5px 12px;">Force Incorrect</button>
+        <button class="btn-reset" id="ttb-reset" style="font-size: 11px; padding: 5px 12px;">Reset</button>
+      </div>
+      <p class="tap-hint">Tap words to build a sentence. Submit appears when the box has words. Skip resets and moves on.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 6: MATCHING PAIRS ═══ -->
+  <div class="section" id="sec-matching">
+    <h2>6. Matching Pairs</h2>
+    <p class="desc">Duolingo-style matching — two independent columns (left = audio, right = text). User picks one on the left, then one on the right. Pair resolves as correct or incorrect. The experience should feel fast — no input blocking.</p>
+
+    <h3>Matching Pair Button Specs</h3>
+    <table class="spec-table">
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Width</td><td><code>181px</code> (half of container)</td></tr>
+        <tr><td>Height</td><td><code>70–72px</code></td></tr>
+        <tr><td>Padding</td><td><code>24px 16px</code></td></tr>
+        <tr><td>Border radius</td><td><code>16px</code></td></tr>
+        <tr><td>Gap between pair</td><td><code>8px</code></td></tr>
+        <tr><td>Shadow</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)</code></td></tr>
+        <tr><td>Transform origin</td><td><code>center</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>States</h3>
+    <p class="desc">Four states: Default (white), Selected (blue — <code>#DDE4FF</code> bg, <code>#8DA4FF</code> border, no shadow), Incorrect (orange), Correct (green). Same visual tokens as multi-choice. Refer to Figma for colors.</p>
+
+    <h3>Animation Flow</h3>
+    <div class="flow-diagram" style="flex-direction: column; gap: 16px;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-box" style="background:#DDE4FF; border: 2px solid #8DA4FF; color: rgba(0,0,0,0.9);">SELECTED<span class="flow-label">blue pair</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">incorrect</span> →</span>
+        <div class="flow-box" style="background:#FFEDE6; border: 1.5px solid #FDC2AD; color: #CA6A49;">INCORRECT + Jiggle<span class="flow-label">orange + rotate 500ms</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">instant</span> →</span>
+        <div class="flow-box" style="background:#FFF; border: 1px solid #E5E7EB; color: rgba(0,0,0,0.9);">DEFAULT<span class="flow-label">reset to white</span></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="flow-box" style="background:#DDE4FF; border: 2px solid #8DA4FF; color: rgba(0,0,0,0.9);">SELECTED<span class="flow-label">blue pair</span></div>
+        <span class="flow-arrow">→ <span style="font-size:10px">correct</span> →</span>
+        <div class="flow-box" style="background:#E5F7F2; border: 2px solid #94E0CA; color: #219A77;">CORRECT + Scale Pop<span class="flow-label">green + spring pop</span></div>
+      </div>
+    </div>
+
+    <h3>Input Behavior — Critical Rules</h3>
+    <p class="desc">The matching exercise must feel fast and responsive. There is <strong>no global input lock</strong> at any point. The user should be able to tap as fast as they want. Here are the specific rules:</p>
+    <table class="spec-table">
+      <thead><tr><th>Scenario</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Correct match</strong></td>
+          <td>Animation plays immediately, no delay. Both buttons become non-interactive (<code>pointerEvents: none</code>) and stay in the correct (green) state. Input is <strong>never blocked</strong> — user can immediately tap the next pair while the correct animation is still playing.</td>
+        </tr>
+        <tr>
+          <td><strong>Incorrect match</strong></td>
+          <td>Both buttons jiggle (orange, 500ms rotation). Input is <strong>never blocked</strong> — user can tap other buttons immediately. The two jiggling buttons themselves are untappable while jiggling (they ignore clicks while in <code>state-incorrect</code>).</td>
+        </tr>
+        <tr>
+          <td><strong>Tap a jiggling button</strong></td>
+          <td>Ignored. Buttons with <code>state-incorrect</code> class reject clicks. Once the jiggle ends and the button resets to default, it becomes tappable again.</td>
+        </tr>
+        <tr>
+          <td><strong>Tap a correct (green) button</strong></td>
+          <td>Ignored. Already-matched buttons reject clicks permanently.</td>
+        </tr>
+        <tr>
+          <td><strong>Switch left selection</strong></td>
+          <td>User can freely re-tap a different left button at any time — the previous left selection deselects.</td>
+        </tr>
+        <tr>
+          <td><strong>Tap right before selecting left</strong></td>
+          <td>Ignored — must pick left first.</td>
+        </tr>
+        <tr>
+          <td><strong>Left button started jiggling after selection</strong></td>
+          <td>If the previously selected left button enters <code>state-incorrect</code> (from a prior incorrect pair), the selection is cleared. User must pick a new left button.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="desc">Key differences from multi-choice: (1) after incorrect jiggle, matching pair buttons reset back to default (white) — they do not go to disabled (gray). (2) No input locking at any point — all animations are non-blocking.</p>
+
+    <h3>Live Preview</h3>
+    <div class="demo-card">
+      <div class="demo-area" style="flex-direction: column; gap: 0;">
+        <div class="match-grid" id="match-grid">
+          <!-- Left column: audio buttons -->
+          <div class="match-col">
+            <button class="match-btn match-left" data-side="left" data-answer="weather"><svg class="speaker-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15a.75.75 0 0 1-1.238.57L6.326 16.5H3.75A1.5 1.5 0 0 1 2.25 15V9a1.5 1.5 0 0 1 1.5-1.5h2.576l4.436-3.57A.75.75 0 0 1 12 4.5Zm3.549 2.318a.75.75 0 0 1 1.06-.032A6.74 6.74 0 0 1 18.75 12a6.74 6.74 0 0 1-2.14 5.214.75.75 0 1 1-1.028-1.092A5.24 5.24 0 0 0 17.25 12a5.24 5.24 0 0 0-1.669-4.122.75.75 0 0 1-.032-1.06Z"/></svg></button>
+            <button class="match-btn match-left" data-side="left" data-answer="humid"><svg class="speaker-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15a.75.75 0 0 1-1.238.57L6.326 16.5H3.75A1.5 1.5 0 0 1 2.25 15V9a1.5 1.5 0 0 1 1.5-1.5h2.576l4.436-3.57A.75.75 0 0 1 12 4.5Zm3.549 2.318a.75.75 0 0 1 1.06-.032A6.74 6.74 0 0 1 18.75 12a6.74 6.74 0 0 1-2.14 5.214.75.75 0 1 1-1.028-1.092A5.24 5.24 0 0 0 17.25 12a5.24 5.24 0 0 0-1.669-4.122.75.75 0 0 1-.032-1.06Z"/></svg></button>
+            <button class="match-btn match-left" data-side="left" data-answer="hot"><svg class="speaker-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5v15a.75.75 0 0 1-1.238.57L6.326 16.5H3.75A1.5 1.5 0 0 1 2.25 15V9a1.5 1.5 0 0 1 1.5-1.5h2.576l4.436-3.57A.75.75 0 0 1 12 4.5Zm3.549 2.318a.75.75 0 0 1 1.06-.032A6.74 6.74 0 0 1 18.75 12a6.74 6.74 0 0 1-2.14 5.214.75.75 0 1 1-1.028-1.092A5.24 5.24 0 0 0 17.25 12a5.24 5.24 0 0 0-1.669-4.122.75.75 0 0 1-.032-1.06Z"/></svg></button>
+          </div>
+          <!-- Right column: text buttons (shuffled order) -->
+          <div class="match-col">
+            <button class="match-btn match-right" data-side="right" data-answer="hot">{hot}</button>
+            <button class="match-btn match-right" data-side="right" data-answer="weather">{weather}</button>
+            <button class="match-btn match-right" data-side="right" data-answer="humid">{humid}</button>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-reset" id="match-reset">Reset</button>
+      </div>
+      <p class="tap-hint">Tap an audio button on the left, then tap a word on the right to match. Correct pairs stay green; wrong pairs jiggle and reset.</p>
+    </div>
+
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 7: ANIMATION TUNER ═══ -->
+  <div class="section" id="sec-tuner">
+    <h2>7. Animation Tuner</h2>
+    <p class="desc">Internal tool for exploring animation parameters. Not part of the developer handoff — values here are locked for production.</p>
+
+    <details class="tuner-toggle" id="glow-tuner-wrapper">
+      <summary class="tuner-summary">Open Tuner <span class="tuner-badge">Internal — do not modify values</span></summary>
+    <div class="tuner-panel" id="glow-tuner">
+      <div class="tuner-title">Tweak the correct-state glow across all button types</div>
+      <div class="tuner-grid">
+        <div class="tuner-row">
+          <div class="tuner-label">Max Blur Radius <span class="tuner-value" id="val-blur">8px</span></div>
+          <input type="range" id="sl-blur" min="0" max="30" step="1" value="10">
+        </div>
+        <div class="tuner-row">
+          <div class="tuner-label">Spread <span class="tuner-value" id="val-spread">0px</span></div>
+          <input type="range" id="sl-spread" min="0" max="20" step="1" value="0">
+        </div>
+        <div class="tuner-row">
+          <div class="tuner-label">Glow Opacity <span class="tuner-value" id="val-opacity">1.0</span></div>
+          <input type="range" id="sl-opacity" min="0" max="100" step="5" value="20">
+        </div>
+        <div class="tuner-row">
+          <div class="tuner-label">Scale Amount <span class="tuner-value" id="val-scale">0.08</span></div>
+          <input type="range" id="sl-scale" min="2" max="20" step="1" value="4">
+        </div>
+        <div class="tuner-row">
+          <div class="tuner-label">Rest Border Color</div>
+          <div class="tuner-color-row">
+            <input type="color" id="cl-rest" value="#94E0CA">
+            <span class="tuner-color-hex" id="val-rest">#94E0CA</span>
+          </div>
+        </div>
+        <div class="tuner-row">
+          <div class="tuner-label">Peak Border Color</div>
+          <div class="tuner-color-row">
+            <input type="color" id="cl-peak" value="#29C195">
+            <span class="tuner-color-hex" id="val-peak">#29C195</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #E5E7EB;">
+        <div class="tuner-title" style="margin-bottom: 12px;">Timing &amp; Spring</div>
+        <div class="tuner-grid">
+          <div class="tuner-row">
+            <div class="tuner-label">Peak Hold <span class="tuner-value" id="val-hold">100ms</span></div>
+            <input type="range" id="sl-hold" min="0" max="400" step="10" value="20">
+          </div>
+          <div class="tuner-row">
+            <div class="tuner-label">Up Stiffness <span class="tuner-value" id="val-up-stiff">600</span></div>
+            <input type="range" id="sl-up-stiff" min="100" max="1000" step="50" value="900">
+          </div>
+          <div class="tuner-row">
+            <div class="tuner-label">Up Damping <span class="tuner-value" id="val-up-damp">18</span></div>
+            <input type="range" id="sl-up-damp" min="5" max="40" step="1" value="33">
+          </div>
+          <div class="tuner-row">
+            <div class="tuner-label">Down Stiffness <span class="tuner-value" id="val-down-stiff">300</span></div>
+            <input type="range" id="sl-down-stiff" min="50" max="800" step="50" value="750">
+          </div>
+          <div class="tuner-row">
+            <div class="tuner-label">Down Damping <span class="tuner-value" id="val-down-damp">26</span></div>
+            <input type="range" id="sl-down-damp" min="5" max="40" step="1" value="10">
+          </div>
+        </div>
+      </div>
+      <div class="tuner-actions">
+        <button class="btn-play" id="tuner-play">▶ Preview All</button>
+        <button class="btn-reset" id="tuner-reset-params">Reset to Defaults</button>
+      </div>
+      <div class="tuner-code" id="tuner-code-output">// box-shadow at peak:
+box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
+// Scale: 1.0 → 1.04  |  Peak hold: 20ms
+// Up spring:   stiffness 900, damping 33
+// Down spring: stiffness 750, damping 10</div>
+    </div>
+    </details>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 8: REACT COMPONENT ═══ -->
+  <div class="section" id="sec-react">
+    <h2>8. React Component</h2>
+    <p class="desc">Ready-to-use React component implementing all states and both animations.</p>
+
+    <div class="code-label">AnimatedTapButton.tsx</div>
+    <div class="code-block"><span class="k">import</span> React, { useRef, useCallback } <span class="k">from</span> <span class="s">"react"</span>;
+<span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+
+<span class="k">type</span> ButtonState = <span class="s">"default"</span> | <span class="s">"pressed"</span> | <span class="s">"selected"</span> | <span class="s">"correct"</span> | <span class="s">"incorrect"</span> | <span class="s">"disabled"</span>;
+
+<span class="k">interface</span> Props {
+  label: <span class="k">string</span>;
+  state: ButtonState;
+  onTap?: () => <span class="k">void</span>;
+}
+
+<span class="k">export function</span> <span class="f">AnimatedTapButton</span>({ label, state, onTap }: Props) {
+  <span class="k">const</span> ref = useRef&lt;HTMLButtonElement&gt;(<span class="n">null</span>);
+
+  <span class="k">const</span> <span class="f">animateCorrect</span> = useCallback(() => {
+    <span class="k">const</span> el = ref.current;
+    <span class="k">if</span> (!el) <span class="k">return</span>;
+    <span class="f">animate</span>({
+      <span class="p">from</span>: <span class="n">1.0</span>, <span class="p">to</span>: <span class="n">1.08</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+      <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">18</span>,
+      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; },
+      <span class="f">onComplete</span>() {
+        <span class="f">animate</span>({
+          <span class="p">from</span>: <span class="n">1.08</span>, <span class="p">to</span>: <span class="n">1.0</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+          <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
+          <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+        });
+      }
+    });
+  }, []);
+
+  <span class="k">const</span> <span class="f">animateIncorrect</span> = useCallback(() => {
+    <span class="k">const</span> el = ref.current;
+    <span class="k">if</span> (!el) <span class="k">return</span>;
+    <span class="f">animate</span>({
+      <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], <span class="p">duration</span>: <span class="n">500</span>,
+      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; },
+      <span class="f">onComplete</span>() { el.style.transform = <span class="s">"rotate(0deg)"</span>; }
+    });
+  }, []);
+
+  React.<span class="f">useEffect</span>(() => {
+    <span class="k">if</span> (state === <span class="s">"correct"</span>) <span class="f">animateCorrect</span>();
+    <span class="k">if</span> (state === <span class="s">"incorrect"</span>) <span class="f">animateIncorrect</span>();
+  }, [state]);
+
+  <span class="k">return</span> (
+    &lt;<span class="f">button</span>
+      <span class="p">ref</span>={ref}
+      <span class="p">className</span>={<span class="s">`tap-button state-${state}`</span>}
+      <span class="p">onClick</span>={onTap}
+      <span class="p">disabled</span>={state === <span class="s">"disabled"</span>}
+    &gt;
+      {label}
+    &lt;/<span class="f">button</span>&gt;
+  );
+}</div>
+  </div>
+
+  <hr>
+
+  <!-- ═══ SECTION 9: REFERENCE LINKS ═══ -->
+  <div class="section" id="sec-links">
+    <h2>9. Reference Links</h2>
+    <div class="links-card">
+      <div class="link-item">
+        <h4>Figma — Button States</h4>
+        <p>Multi-choice button variants &amp; states</p>
+        <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=4193-31418&t=1He1WdvdMyUYCmgn-1" target="_blank">Open in Figma →</a>
+      </div>
+      <div class="link-item">
+        <h4>Figma — Matching Pair</h4>
+        <p>Matching pair buttons &amp; animation sequence</p>
+        <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=5428-42186" target="_blank">Open in Figma →</a>
+      </div>
+      <div class="link-item">
+        <h4>Correct Animation Prototype</h4>
+        <p>Figma Make — scale pop spring animation</p>
+        <a href="https://www.figma.com/make/gdum4f3hpk2RSWajITKHen/Correct-button-animation" target="_blank">Open in Figma Make →</a>
+      </div>
+      <div class="link-item">
+        <h4>Incorrect Animation Prototype</h4>
+        <p>Figma Make — rotation jiggle animation</p>
+        <a href="https://www.figma.com/make/QCGSL4PPVG8hUJKUVRHXst/Incorrect-button-animation" target="_blank">Open in Figma Make →</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ ANIMATION SCRIPT ═══ -->
+<script>
+const pmAnimate = popmotion.animate;
+
+// ── Glow config (tunable via sliders) ──
+const glowConfig = {
+  blur: 10,        // max blur radius in px
+  spread: 0,       // spread radius in px
+  opacity: 0.20,   // 0–1 opacity multiplier
+  scaleAmt: 0.04,  // how far above 1.0 the button scales
+  restColor: "#94E0CA",
+  peakColor: "#29C195",
+  // Timing
+  peakHold: 20,        // ms to dwell at peak before settling
+  upStiffness: 900,    // spring stiffness for scale-up — very snappy
+  upDamping: 33,       // spring damping for scale-up
+  downStiffness: 750,  // quick snap settle
+  downDamping: 10      // low damping — a little bounce on the way back
+};
+
+// ── Color interpolation helper ──
+function lerpColor(a, b, t) {
+  const pa = [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
+  const pb = [parseInt(b.slice(1,3),16), parseInt(b.slice(3,5),16), parseInt(b.slice(5,7),16)];
+  const r = Math.round(pa[0] + (pb[0]-pa[0])*t);
+  const g = Math.round(pa[1] + (pb[1]-pa[1])*t);
+  const bl = Math.round(pa[2] + (pb[2]-pa[2])*t);
+  return `rgb(${r},${g},${bl})`;
+}
+
+function rgbToRgba(rgbStr, alpha) {
+  const m = rgbStr.match(/(\d+)/g);
+  return `rgba(${m[0]},${m[1]},${m[2]},${alpha})`;
+}
+
+// Correct animation with smooth border pulse — works on any element
+function playCorrectOn(el, onDone) {
+  const { blur, spread, opacity, scaleAmt, restColor, peakColor,
+          peakHold, upStiffness, upDamping, downStiffness, downDamping } = glowConfig;
+  const targetScale = 1.0 + scaleAmt;
+
+  function applyGlow(v) {
+    el.style.transform = `scale(${v})`;
+    const t = Math.min((v - 1.0) / scaleAmt, 1);
+    const c = lerpColor(restColor, peakColor, t);
+    const shadowColor = opacity < 1 ? rgbToRgba(c, opacity * t) : c;
+    el.style.borderColor = c;
+    el.style.boxShadow = `0 0 ${t * blur}px ${spread}px ${shadowColor}`;
+  }
+
+  // Disable CSS transitions so they don't fight Popmotion's per-frame updates
+  const savedTransition = el.style.transition;
+  el.style.transition = "none";
+
+  el.classList.add("state-correct");
+
+  // Phase 1: Snap up (punchy spring)
+  pmAnimate({
+    from: 1.0, to: targetScale, type: "spring",
+    stiffness: upStiffness, damping: upDamping,
+    onUpdate: applyGlow,
+    onComplete() {
+      // Phase 2: Hold at peak
+      setTimeout(() => {
+        // Phase 3: Gentle settle back
+        pmAnimate({
+          from: targetScale, to: 1.0, type: "spring",
+          stiffness: downStiffness, damping: downDamping,
+          onUpdate: applyGlow,
+          onComplete() {
+            el.style.borderColor = "";
+            el.style.boxShadow = "";
+            el.style.transition = savedTransition;
+            if (onDone) onDone();
+          }
+        });
+      }, peakHold);
+    }
+  });
+}
+
+// ── Multi-choice button demo ──
+const btn = document.getElementById("demo-btn");
+
+function resetBtn() {
+  btn.classList.remove("state-correct", "state-incorrect", "state-disabled", "state-pressed", "state-selected");
+  btn.style.transform = "scale(1)";
+  btn.style.boxShadow = "";
+  btn.style.background = "";
+  btn.style.borderColor = "";
+  btn.style.color = "";
+  btn.disabled = false;
+}
+
+function playCorrect() {
+  resetBtn();
+  requestAnimationFrame(() => playCorrectOn(btn));
+}
+
+function playIncorrect() {
+  resetBtn();
+  requestAnimationFrame(() => {
+    btn.classList.add("state-incorrect");
+    pmAnimate({
+      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
+      onUpdate(v) { btn.style.transform = `rotate(${v}deg)`; },
+      onComplete() {
+        btn.style.transform = "rotate(0deg)";
+        btn.classList.remove("state-incorrect");
+        btn.classList.add("state-disabled");
+        btn.disabled = true;
+      }
+    });
+  });
+}
+
+function showPressed() {
+  resetBtn();
+  btn.classList.add("state-pressed");
+}
+
+function showSelected() {
+  resetBtn();
+  btn.classList.add("state-selected");
+}
+
+document.getElementById("btn-correct").addEventListener("click", playCorrect);
+document.getElementById("btn-incorrect").addEventListener("click", playIncorrect);
+document.getElementById("btn-pressed").addEventListener("click", showPressed);
+document.getElementById("btn-selected").addEventListener("click", showSelected);
+document.getElementById("btn-reset").addEventListener("click", resetBtn);
+
+// Direct tap cycles through states
+const states = ["correct", "incorrect", "pressed", "selected"];
+let tapIdx = 0;
+btn.addEventListener("click", () => {
+  if (btn.disabled) return;
+  const s = states[tapIdx % states.length];
+  if (s === "correct") playCorrect();
+  else if (s === "incorrect") playIncorrect();
+  else if (s === "pressed") showPressed();
+  else if (s === "selected") showSelected();
+  tapIdx++;
+});
+
+// ── Tap-to-build demo ──
+const sentenceEl = document.getElementById("ttb-sentence");
+const placeholderEl = document.getElementById("ttb-placeholder");
+const wordsEl = document.getElementById("ttb-words");
+const wordBtns = wordsEl.querySelectorAll(".chip-btn");
+const submitBtn = document.getElementById("ttb-submit");
+const skipBtn = document.getElementById("ttb-skip");
+const sentenceWords = [];
+let ttbLocked = false;       // prevent interaction during animations
+let ttbIncorrectCount = 0;   // track incorrect attempts
+
+// Show/hide submit and skip based on state
+function updateTtbUI() {
+  const hasWords = sentenceWords.length > 0;
+  placeholderEl.style.display = hasWords ? "none" : "inline";
+  // Submit: visible only when sentence box has chips
+  submitBtn.classList.toggle("hidden", !hasWords);
+  // Skip: visible only after 3+ incorrect AND sentence box is empty
+  const showSkip = ttbIncorrectCount >= 3 && !hasWords;
+  skipBtn.classList.toggle("hidden", !showSkip);
+}
+
+// ── Chip entrance animation: scale + slide-up ──
+function playEntrance(chip) {
+  chip.style.opacity = "0";
+  chip.style.transform = "translateY(8px) scale(0.92)";
+  pmAnimate({
+    from: 0, to: 1, type: "spring",
+    stiffness: 600, damping: 24,
+    onUpdate(v) {
+      chip.style.transform = `translateY(${(1 - v) * 8}px) scale(${0.92 + v * 0.08})`;
+      chip.style.opacity = `${v}`;
+    },
+    onComplete() { chip.style.opacity = "1"; chip.style.transform = ""; }
+  });
+}
+
+wordBtns.forEach(wb => {
+  wb.addEventListener("click", () => {
+    if (ttbLocked) return;
+    if (wb.classList.contains("state-ghost")) return;
+    const word = wb.dataset.word;
+    wb.classList.add("state-ghost");
+    wb.textContent = word;
+
+    const chip = document.createElement("button");
+    chip.className = "chip-btn";
+    chip.textContent = word;
+    chip.dataset.source = word;
+    // Tap chip in sentence to remove it
+    chip.addEventListener("click", () => {
+      if (ttbLocked) return;
+      sentenceEl.removeChild(chip);
+      const idx = sentenceWords.indexOf(word);
+      if (idx > -1) sentenceWords.splice(idx, 1);
+      wb.classList.remove("state-ghost");
+      updateTtbUI();
+    });
+    sentenceEl.appendChild(chip);
+    sentenceWords.push(word);
+    updateTtbUI();
+
+    requestAnimationFrame(() => playEntrance(chip));
+  });
+});
+
+// Clear chips back to word bank (used after incorrect — preserves attempt count)
+function ttbResetChips() {
+  sentenceEl.querySelectorAll(".chip-btn").forEach(c => c.remove());
+  sentenceWords.length = 0;
+  wordBtns.forEach(wb => {
+    wb.classList.remove("state-ghost", "state-correct", "state-incorrect");
+    wb.style.transform = "";
+  });
+  ttbLocked = false;
+}
+
+// Full reset (used by Reset button and Skip — resets everything including attempt count)
+function ttbReset() {
+  ttbResetChips();
+  ttbIncorrectCount = 0;
+  placeholderEl.textContent = "Your sentence appears here...";
+  updateTtbUI();
+}
+
+function ttbPlayCorrect() {
+  const chips = sentenceEl.querySelectorAll(".chip-btn");
+  if (!chips.length) return;
+  ttbLocked = true;
+  chips.forEach(el => playCorrectOn(el));
+}
+
+function ttbPlayIncorrect() {
+  const chips = sentenceEl.querySelectorAll(".chip-btn");
+  if (!chips.length) return;
+  ttbLocked = true;
+  ttbIncorrectCount++;
+  let completed = 0;
+  chips.forEach(el => {
+    el.classList.add("state-incorrect");
+    pmAnimate({
+      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
+      onUpdate(v) { el.style.transform = `rotate(${v}deg)`; },
+      onComplete() {
+        el.style.transform = "rotate(0deg)";
+        completed++;
+        if (completed === chips.length) {
+          setTimeout(() => {
+            ttbResetChips();
+            placeholderEl.textContent = "Try again...";
+            placeholderEl.style.display = "inline";
+            updateTtbUI(); // re-evaluate skip visibility after incorrect
+          }, 200);
+        }
+      }
+    });
+  });
+}
+
+// Submit — triggers incorrect in demo (so user can see skip appear after 3 attempts)
+submitBtn.addEventListener("click", () => {
+  if (ttbLocked) return;
+  ttbPlayIncorrect();
+});
+
+// Skip — reset to default state
+skipBtn.addEventListener("click", () => {
+  if (ttbLocked) return;
+  ttbReset();
+});
+
+// Force buttons (for dev testing)
+document.getElementById("ttb-correct").addEventListener("click", () => { if (!ttbLocked) ttbPlayCorrect(); });
+document.getElementById("ttb-incorrect").addEventListener("click", () => { if (!ttbLocked) ttbPlayIncorrect(); });
+document.getElementById("ttb-reset").addEventListener("click", ttbReset);
+
+// ── Matching pair demo (Duolingo-style) ──
+const matchGrid = document.getElementById("match-grid");
+const allMatchBtns = matchGrid.querySelectorAll(".match-btn");
+let selectedLeft = null;   // currently selected left button
+// No input locking — user can tap freely at any time
+
+function resetAllMatch() {
+  allMatchBtns.forEach(b => {
+    b.classList.remove("state-selected", "state-correct", "state-incorrect");
+    b.style.transform = "";
+    b.style.pointerEvents = "";
+    b.style.borderColor = "";
+    b.style.boxShadow = "";
+    b.style.transformOrigin = "";
+  });
+  selectedLeft = null;
+}
+
+function animateMatchCorrect(btnA, btnB) {
+  [btnA, btnB].forEach(b => {
+    b.classList.remove("state-selected");
+    b.style.pointerEvents = "none"; // prevent re-tapping matched buttons
+    playCorrectOn(b);
+  });
+  // Unlock immediately — let user keep tapping while animation plays
+}
+
+function resetMatchBtn(b) {
+  // Instantly clear any in-progress animation state so it's tappable again
+  b.classList.remove("state-selected", "state-incorrect");
+  b.style.transform = "";
+  b.style.transformOrigin = "";
+}
+
+function animateMatchIncorrect(btnA, btnB) {
+  [btnA, btnB].forEach(b => {
+    b.classList.remove("state-selected");
+    b.classList.add("state-incorrect");
+    b.style.transformOrigin = "center";
+    pmAnimate({
+      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
+      onUpdate(v) { b.style.transform = `rotate(${v}deg)`; },
+      onComplete() {
+        b.style.transform = "";
+        b.style.transformOrigin = "";
+        b.classList.remove("state-incorrect");
+      }
+    });
+  });
+  // Unlock immediately — animation plays in background
+}
+
+allMatchBtns.forEach(b => {
+  b.addEventListener("click", () => {
+    if (b.classList.contains("state-correct")) return; // already matched
+    if (b.classList.contains("state-incorrect")) return; // mid-jiggle, ignore
+
+    const side = b.dataset.side;
+
+    if (side === "left") {
+      if (selectedLeft) selectedLeft.classList.remove("state-selected");
+      selectedLeft = b;
+      b.classList.add("state-selected");
+    } else if (side === "right") {
+      if (!selectedLeft) return; // must pick left first
+      if (selectedLeft.classList.contains("state-incorrect")) { selectedLeft = null; return; } // left was jiggling
+
+      b.classList.add("state-selected");
+
+      const isCorrect = selectedLeft.dataset.answer === b.dataset.answer;
+      const leftBtn = selectedLeft;
+      selectedLeft = null;
+
+      if (isCorrect) {
+        animateMatchCorrect(leftBtn, b);
+      } else {
+        animateMatchIncorrect(leftBtn, b);
+      }
+    }
+  });
+});
+
+document.getElementById("match-reset").addEventListener("click", resetAllMatch);
+
+// ── Glow Tuner Wiring ──
+(function() {
+  // Glow sliders
+  const slBlur = document.getElementById("sl-blur");
+  const slSpread = document.getElementById("sl-spread");
+  const slOpacity = document.getElementById("sl-opacity");
+  const slScale = document.getElementById("sl-scale");
+  const clRest = document.getElementById("cl-rest");
+  const clPeak = document.getElementById("cl-peak");
+  // Timing sliders
+  const slHold = document.getElementById("sl-hold");
+  const slUpStiff = document.getElementById("sl-up-stiff");
+  const slUpDamp = document.getElementById("sl-up-damp");
+  const slDownStiff = document.getElementById("sl-down-stiff");
+  const slDownDamp = document.getElementById("sl-down-damp");
+
+  // Value readouts
+  const valBlur = document.getElementById("val-blur");
+  const valSpread = document.getElementById("val-spread");
+  const valOpacity = document.getElementById("val-opacity");
+  const valScale = document.getElementById("val-scale");
+  const valRest = document.getElementById("val-rest");
+  const valPeak = document.getElementById("val-peak");
+  const valHold = document.getElementById("val-hold");
+  const valUpStiff = document.getElementById("val-up-stiff");
+  const valUpDamp = document.getElementById("val-up-damp");
+  const valDownStiff = document.getElementById("val-down-stiff");
+  const valDownDamp = document.getElementById("val-down-damp");
+  const codeOutput = document.getElementById("tuner-code-output");
+
+  function syncConfig() {
+    glowConfig.blur = parseInt(slBlur.value);
+    glowConfig.spread = parseInt(slSpread.value);
+    glowConfig.opacity = parseInt(slOpacity.value) / 100;
+    glowConfig.scaleAmt = parseInt(slScale.value) / 100;
+    glowConfig.restColor = clRest.value;
+    glowConfig.peakColor = clPeak.value;
+    glowConfig.peakHold = parseInt(slHold.value);
+    glowConfig.upStiffness = parseInt(slUpStiff.value);
+    glowConfig.upDamping = parseInt(slUpDamp.value);
+    glowConfig.downStiffness = parseInt(slDownStiff.value);
+    glowConfig.downDamping = parseInt(slDownDamp.value);
+
+    valBlur.textContent = glowConfig.blur + "px";
+    valSpread.textContent = glowConfig.spread + "px";
+    valOpacity.textContent = glowConfig.opacity.toFixed(2);
+    valScale.textContent = glowConfig.scaleAmt.toFixed(2);
+    valRest.textContent = glowConfig.restColor.toUpperCase();
+    valPeak.textContent = glowConfig.peakColor.toUpperCase();
+    valHold.textContent = glowConfig.peakHold + "ms";
+    valUpStiff.textContent = glowConfig.upStiffness;
+    valUpDamp.textContent = glowConfig.upDamping;
+    valDownStiff.textContent = glowConfig.downStiffness;
+    valDownDamp.textContent = glowConfig.downDamping;
+
+    // Update generated code preview
+    const peakRgb = lerpColor(glowConfig.restColor, glowConfig.peakColor, 1);
+    const shadowStr = glowConfig.opacity < 1
+      ? rgbToRgba(peakRgb, glowConfig.opacity)
+      : peakRgb;
+    codeOutput.textContent =
+`// box-shadow at peak:
+box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
+// Scale: 1.0 → ${(1 + glowConfig.scaleAmt).toFixed(2)}  |  Peak hold: ${glowConfig.peakHold}ms
+// Up spring:   stiffness ${glowConfig.upStiffness}, damping ${glowConfig.upDamping}
+// Down spring: stiffness ${glowConfig.downStiffness}, damping ${glowConfig.downDamping}
+// Glow opacity: ${glowConfig.opacity.toFixed(2)}
+// Rest border: ${glowConfig.restColor.toUpperCase()}  →  Peak: ${glowConfig.peakColor.toUpperCase()}`;
+  }
+
+  // Bind all sliders
+  [slBlur, slSpread, slOpacity, slScale, slHold, slUpStiff, slUpDamp, slDownStiff, slDownDamp].forEach(sl => {
+    sl.addEventListener("input", syncConfig);
+  });
+  [clRest, clPeak].forEach(cl => {
+    cl.addEventListener("input", syncConfig);
+  });
+
+  // Preview All button — triggers correct animation on all three button types
+  document.getElementById("tuner-play").addEventListener("click", function() {
+    // 1. Multi-choice button
+    resetBtn();
+    requestAnimationFrame(() => playCorrectOn(btn));
+
+    // 2. Tap-to-build: auto-add a couple chips if empty, then play correct
+    const sentenceEl = document.getElementById("ttb-sentence");
+    const chips = sentenceEl.querySelectorAll(".chip-btn");
+    if (chips.length === 0) {
+      const wordBtns = document.querySelectorAll("#ttb-words .chip-btn");
+      wordBtns.forEach((wb, i) => {
+        if (i < 2 && !wb.classList.contains("state-ghost")) wb.click();
+      });
+    }
+    setTimeout(() => {
+      const previewChips = sentenceEl.querySelectorAll(".chip-btn");
+      previewChips.forEach(el => {
+        el.classList.remove("state-correct", "state-incorrect");
+        el.style.transform = ""; el.style.borderColor = ""; el.style.boxShadow = "";
+        playCorrectOn(el);
+      });
+    }, 100);
+
+    // 3. Matching pair: pick first available left + right pair
+    resetAllMatch();
+    setTimeout(() => {
+      const leftBtns = document.querySelectorAll(".match-btn.match-left");
+      const rightBtns = document.querySelectorAll(".match-btn.match-right");
+      if (leftBtns.length && rightBtns.length) {
+        playCorrectOn(leftBtns[0]);
+        playCorrectOn(rightBtns[0]);
+      }
+    }, 100);
+  });
+
+  // Reset to defaults
+  document.getElementById("tuner-reset-params").addEventListener("click", function() {
+    slBlur.value = 10; slSpread.value = 0; slOpacity.value = 20; slScale.value = 4;
+    clRest.value = "#94E0CA"; clPeak.value = "#29C195";
+    slHold.value = 20; slUpStiff.value = 900; slUpDamp.value = 33;
+    slDownStiff.value = 750; slDownDamp.value = 10;
+    syncConfig();
+  });
+})();
+</script>
+</body>
+</html>
