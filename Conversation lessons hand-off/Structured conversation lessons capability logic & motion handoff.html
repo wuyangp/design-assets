@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Structured Conversation Lessons — Capability Logic & Motion Handoff</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popmotion/11.0.5/popmotion.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/motion@12.38.0/dist/motion.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
   :root {
@@ -364,10 +364,10 @@
   <div class="header">
     <h1>Structured Conversation Lessons — Capability Logic & Motion Handoff</h1>
     <p>Conversation Lessons — Multi-select, Matching Pairs, Tap to Build exercises.<br>
-    Animated button transitions for correct and incorrect answer states using Popmotion v11.</p>
+    Animated button transitions for correct and incorrect answer states using Motion.</p>
     <div class="meta-row">
-      <span class="meta-tag"><strong>Library:</strong> popmotion@11.x</span>
-      <span class="meta-tag"><strong>Install:</strong> npm install popmotion</span>
+      <span class="meta-tag"><strong>Library:</strong> motion@12.x</span>
+      <span class="meta-tag"><strong>Install:</strong> npm install motion</span>
       <span class="meta-tag"><strong>Framework:</strong> React 18+</span>
       <span class="meta-tag"><strong>Date:</strong> April 8, 2026</span>
     </div>
@@ -502,35 +502,30 @@
       </tbody>
     </table>
 
-    <div class="code-label">Popmotion v11 Code</div>
-    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+    <div class="code-label">Motion Code</div>
+    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="c">// 1. Snap color to green immediately</span>
 el.classList.add(<span class="s">"state-correct"</span>);
 
 <span class="c">// 2. Scale up with quick spring</span>
-<span class="f">animate</span>({
-  <span class="p">from</span>: <span class="n">1.0</span>,
-  <span class="p">to</span>: <span class="n">1.08</span>,
+<span class="f">animate</span>(<span class="n">1.0</span>, <span class="n">1.08</span>, {
   <span class="p">type</span>: <span class="s">"spring"</span>,
   <span class="p">stiffness</span>: <span class="n">600</span>,
   <span class="p">damping</span>: <span class="n">18</span>,
   <span class="f">onUpdate</span>(v) {
     el.style.transform = <span class="s">`scale(${v})`</span>;
-  },
-  <span class="f">onComplete</span>() {
-    <span class="c">// 3. Bounce back to normal</span>
-    <span class="f">animate</span>({
-      <span class="p">from</span>: <span class="n">1.08</span>,
-      <span class="p">to</span>: <span class="n">1.0</span>,
-      <span class="p">type</span>: <span class="s">"spring"</span>,
-      <span class="p">stiffness</span>: <span class="n">500</span>,
-      <span class="p">damping</span>: <span class="n">20</span>,
-      <span class="f">onUpdate</span>(v) {
-        el.style.transform = <span class="s">`scale(${v})`</span>;
-      }
-    });
   }
+}).<span class="f">then</span>(() => {
+  <span class="c">// 3. Bounce back to normal</span>
+  <span class="f">animate</span>(<span class="n">1.08</span>, <span class="n">1.0</span>, {
+    <span class="p">type</span>: <span class="s">"spring"</span>,
+    <span class="p">stiffness</span>: <span class="n">500</span>,
+    <span class="p">damping</span>: <span class="n">20</span>,
+    <span class="f">onUpdate</span>(v) {
+      el.style.transform = <span class="s">`scale(${v})`</span>;
+    }
+  });
 });</div>
   </div>
 
@@ -557,33 +552,30 @@ el.classList.add(<span class="s">"state-correct"</span>);
         <tr><td>Animation type</td><td>Rotation keyframes (<code>transform: rotate()</code>)</td></tr>
         <tr><td>Duration</td><td><code>500ms</code></td></tr>
         <tr><td>Keyframe values</td><td><code>from: 0 → to: [4, -4, 3, -3, 2, -2, 0]</code> degrees</td></tr>
-        <tr><td>Easing</td><td>Popmotion default (eased between keyframes)</td></tr>
+        <tr><td>Easing</td><td>Default (eased between keyframes)</td></tr>
         <tr><td>Transform origin</td><td><code>center</code></td></tr>
         <tr><td>Post-animation</td><td>Transition to disabled state immediately</td></tr>
       </tbody>
     </table>
 
-    <div class="code-label">Popmotion v11 Code</div>
-    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+    <div class="code-label">Motion Code</div>
+    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="c">// 1. Snap color to orange immediately</span>
 el.classList.add(<span class="s">"state-incorrect"</span>);
 
-<span class="c">// 2. Rotation jiggle — native keyframe array</span>
-<span class="f">animate</span>({
-  <span class="p">from</span>: <span class="n">0</span>,
-  <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>],
-  <span class="p">duration</span>: <span class="n">500</span>,
+<span class="c">// 2. Rotation jiggle — keyframe array</span>
+<span class="f">animate</span>(<span class="n">0</span>, [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], {
+  <span class="p">duration</span>: <span class="n">0.5</span>,
   <span class="f">onUpdate</span>(v) {
     el.style.transform = <span class="s">`rotate(${v}deg)`</span>;
-  },
-  <span class="f">onComplete</span>() {
-    <span class="c">// 3. Transition to disabled state</span>
-    el.style.transform = <span class="s">"rotate(0deg)"</span>;
-    el.classList.remove(<span class="s">"state-incorrect"</span>);
-    el.classList.add(<span class="s">"state-disabled"</span>);
-    el.disabled = <span class="n">true</span>;
   }
+}).<span class="f">then</span>(() => {
+  <span class="c">// 3. Transition to disabled state</span>
+  el.style.transform = <span class="s">"rotate(0deg)"</span>;
+  el.classList.remove(<span class="s">"state-incorrect"</span>);
+  el.classList.add(<span class="s">"state-disabled"</span>);
+  el.disabled = <span class="n">true</span>;
 });</div>
   </div>
 
@@ -781,17 +773,16 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
 <span class="c">// The visual effect is that each word "pops" wider briefly</span>
 sentenceChips.forEach(el => {
   el.classList.add(<span class="s">"state-correct"</span>);
-  <span class="f">animate</span>({
-    <span class="p">from</span>: <span class="n">1.0</span>, <span class="p">to</span>: <span class="n">1.08</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+  <span class="f">animate</span>(<span class="n">1.0</span>, <span class="n">1.08</span>, {
+    <span class="p">type</span>: <span class="s">"spring"</span>,
     <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">18</span>,
-    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; },
-    <span class="f">onComplete</span>() {
-      <span class="f">animate</span>({
-        <span class="p">from</span>: <span class="n">1.08</span>, <span class="p">to</span>: <span class="n">1.0</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
-        <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
-        <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
-      });
-    }
+    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+  }).<span class="f">then</span>(() => {
+    <span class="f">animate</span>(<span class="n">1.08</span>, <span class="n">1.0</span>, {
+      <span class="p">type</span>: <span class="s">"spring"</span>,
+      <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
+      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+    });
   });
 });</div>
 
@@ -799,18 +790,16 @@ sentenceChips.forEach(el => {
     <div class="code-block"><span class="k">let</span> completed = <span class="n">0</span>;
 sentenceChips.forEach(el => {
   el.classList.add(<span class="s">"state-incorrect"</span>);
-  <span class="f">animate</span>({
-    <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>],
-    <span class="p">duration</span>: <span class="n">500</span>,
-    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; },
-    <span class="f">onComplete</span>() {
-      el.style.transform = <span class="s">"rotate(0deg)"</span>;
-      completed++;
-      <span class="k">if</span> (completed === sentenceChips.length) {
-        <span class="c">// All done — reset chips back to word bank</span>
-        resetToWordBank();
-        showMessage(<span class="s">"Try again..."</span>);
-      }
+  <span class="f">animate</span>(<span class="n">0</span>, [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], {
+    <span class="p">duration</span>: <span class="n">0.5</span>,
+    <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; }
+  }).<span class="f">then</span>(() => {
+    el.style.transform = <span class="s">"rotate(0deg)"</span>;
+    completed++;
+    <span class="k">if</span> (completed === sentenceChips.length) {
+      <span class="c">// All done — reset chips back to word bank</span>
+      resetToWordBank();
+      showMessage(<span class="s">"Try again..."</span>);
     }
   });
 });</div>
@@ -822,17 +811,16 @@ sentenceChips.forEach(el => {
 chip.style.opacity = <span class="s">"0"</span>;
 chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
 
-<span class="f">animate</span>({
-  <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: <span class="n">1</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+<span class="f">animate</span>(<span class="n">0</span>, <span class="n">1</span>, {
+  <span class="p">type</span>: <span class="s">"spring"</span>,
   <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">24</span>,
   <span class="f">onUpdate</span>(v) {
     chip.style.transform = <span class="s">`translateY(${(1 - v) * 8}px) scale(${0.92 + v * 0.08})`</span>;
     chip.style.opacity = <span class="s">`${v}`</span>;
-  },
-  <span class="f">onComplete</span>() {
-    chip.style.opacity = <span class="s">"1"</span>;
-    chip.style.transform = <span class="s">""</span>;
   }
+}).<span class="f">then</span>(() => {
+  chip.style.opacity = <span class="s">"1"</span>;
+  chip.style.transform = <span class="s">""</span>;
 });</div>
 
     <h3>Submit &amp; Skip Buttons</h3>
@@ -1091,7 +1079,7 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
 
     <div class="code-label">AnimatedTapButton.tsx</div>
     <div class="code-block"><span class="k">import</span> React, { useRef, useCallback } <span class="k">from</span> <span class="s">"react"</span>;
-<span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"popmotion"</span>;
+<span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="k">type</span> ButtonState = <span class="s">"default"</span> | <span class="s">"pressed"</span> | <span class="s">"selected"</span> | <span class="s">"correct"</span> | <span class="s">"incorrect"</span> | <span class="s">"disabled"</span>;
 
@@ -1107,28 +1095,26 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
   <span class="k">const</span> <span class="f">animateCorrect</span> = useCallback(() => {
     <span class="k">const</span> el = ref.current;
     <span class="k">if</span> (!el) <span class="k">return</span>;
-    <span class="f">animate</span>({
-      <span class="p">from</span>: <span class="n">1.0</span>, <span class="p">to</span>: <span class="n">1.08</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
+    <span class="f">animate</span>(<span class="n">1.0</span>, <span class="n">1.08</span>, {
+      <span class="p">type</span>: <span class="s">"spring"</span>,
       <span class="p">stiffness</span>: <span class="n">600</span>, <span class="p">damping</span>: <span class="n">18</span>,
-      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; },
-      <span class="f">onComplete</span>() {
-        <span class="f">animate</span>({
-          <span class="p">from</span>: <span class="n">1.08</span>, <span class="p">to</span>: <span class="n">1.0</span>, <span class="p">type</span>: <span class="s">"spring"</span>,
-          <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
-          <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
-        });
-      }
+      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+    }).<span class="f">then</span>(() => {
+      <span class="f">animate</span>(<span class="n">1.08</span>, <span class="n">1.0</span>, {
+        <span class="p">type</span>: <span class="s">"spring"</span>,
+        <span class="p">stiffness</span>: <span class="n">500</span>, <span class="p">damping</span>: <span class="n">20</span>,
+        <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`scale(${v})`</span>; }
+      });
     });
   }, []);
 
   <span class="k">const</span> <span class="f">animateIncorrect</span> = useCallback(() => {
     <span class="k">const</span> el = ref.current;
     <span class="k">if</span> (!el) <span class="k">return</span>;
-    <span class="f">animate</span>({
-      <span class="p">from</span>: <span class="n">0</span>, <span class="p">to</span>: [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], <span class="p">duration</span>: <span class="n">500</span>,
-      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; },
-      <span class="f">onComplete</span>() { el.style.transform = <span class="s">"rotate(0deg)"</span>; }
-    });
+    <span class="f">animate</span>(<span class="n">0</span>, [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], {
+      <span class="p">duration</span>: <span class="n">0.5</span>,
+      <span class="f">onUpdate</span>(v) { el.style.transform = <span class="s">`rotate(${v}deg)`</span>; }
+    }).<span class="f">then</span>(() => { el.style.transform = <span class="s">"rotate(0deg)"</span>; });
   }, []);
 
   React.<span class="f">useEffect</span>(() => {
@@ -1166,6 +1152,11 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
         <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=5428-42186" target="_blank">Open in Figma →</a>
       </div>
       <div class="link-item">
+        <h4>Motion — animate() API</h4>
+        <p>Animation library docs — spring, keyframes, onUpdate</p>
+        <a href="https://motion.dev/docs/animate" target="_blank">Open Docs →</a>
+      </div>
+      <div class="link-item">
         <h4>Correct Animation Prototype</h4>
         <p>Figma Make — scale pop spring animation</p>
         <a href="https://www.figma.com/make/gdum4f3hpk2RSWajITKHen/Correct-button-animation" target="_blank">Open in Figma Make →</a>
@@ -1182,7 +1173,7 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
 
 <!-- ═══ ANIMATION SCRIPT ═══ -->
 <script>
-const pmAnimate = popmotion.animate;
+const pmAnimate = Motion.animate;
 
 // ── Glow config (tunable via sliders) ──
 const glowConfig = {
@@ -1230,34 +1221,32 @@ function playCorrectOn(el, onDone) {
     el.style.boxShadow = `0 0 ${t * blur}px ${spread}px ${shadowColor}`;
   }
 
-  // Disable CSS transitions so they don't fight Popmotion's per-frame updates
+  // Disable CSS transitions so they don't fight Motion's per-frame updates
   const savedTransition = el.style.transition;
   el.style.transition = "none";
 
   el.classList.add("state-correct");
 
   // Phase 1: Snap up (punchy spring)
-  pmAnimate({
-    from: 1.0, to: targetScale, type: "spring",
+  pmAnimate(1.0, targetScale, {
+    type: "spring",
     stiffness: upStiffness, damping: upDamping,
-    onUpdate: applyGlow,
-    onComplete() {
-      // Phase 2: Hold at peak
-      setTimeout(() => {
-        // Phase 3: Gentle settle back
-        pmAnimate({
-          from: targetScale, to: 1.0, type: "spring",
-          stiffness: downStiffness, damping: downDamping,
-          onUpdate: applyGlow,
-          onComplete() {
-            el.style.borderColor = "";
-            el.style.boxShadow = "";
-            el.style.transition = savedTransition;
-            if (onDone) onDone();
-          }
-        });
-      }, peakHold);
-    }
+    onUpdate: applyGlow
+  }).then(() => {
+    // Phase 2: Hold at peak
+    setTimeout(() => {
+      // Phase 3: Gentle settle back
+      pmAnimate(targetScale, 1.0, {
+        type: "spring",
+        stiffness: downStiffness, damping: downDamping,
+        onUpdate: applyGlow
+      }).then(() => {
+        el.style.borderColor = "";
+        el.style.boxShadow = "";
+        el.style.transition = savedTransition;
+        if (onDone) onDone();
+      });
+    }, peakHold);
   });
 }
 
@@ -1283,15 +1272,14 @@ function playIncorrect() {
   resetBtn();
   requestAnimationFrame(() => {
     btn.classList.add("state-incorrect");
-    pmAnimate({
-      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
-      onUpdate(v) { btn.style.transform = `rotate(${v}deg)`; },
-      onComplete() {
-        btn.style.transform = "rotate(0deg)";
-        btn.classList.remove("state-incorrect");
-        btn.classList.add("state-disabled");
-        btn.disabled = true;
-      }
+    pmAnimate(0, [4, -4, 3, -3, 2, -2, 0], {
+      duration: 0.5,
+      onUpdate(v) { btn.style.transform = `rotate(${v}deg)`; }
+    }).then(() => {
+      btn.style.transform = "rotate(0deg)";
+      btn.classList.remove("state-incorrect");
+      btn.classList.add("state-disabled");
+      btn.disabled = true;
     });
   });
 }
@@ -1351,15 +1339,14 @@ function updateTtbUI() {
 function playEntrance(chip) {
   chip.style.opacity = "0";
   chip.style.transform = "translateY(8px) scale(0.92)";
-  pmAnimate({
-    from: 0, to: 1, type: "spring",
+  pmAnimate(0, 1, {
+    type: "spring",
     stiffness: 600, damping: 24,
     onUpdate(v) {
       chip.style.transform = `translateY(${(1 - v) * 8}px) scale(${0.92 + v * 0.08})`;
       chip.style.opacity = `${v}`;
-    },
-    onComplete() { chip.style.opacity = "1"; chip.style.transform = ""; }
-  });
+    }
+  }).then(() => { chip.style.opacity = "1"; chip.style.transform = ""; });
 }
 
 wordBtns.forEach(wb => {
@@ -1425,20 +1412,19 @@ function ttbPlayIncorrect() {
   let completed = 0;
   chips.forEach(el => {
     el.classList.add("state-incorrect");
-    pmAnimate({
-      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
-      onUpdate(v) { el.style.transform = `rotate(${v}deg)`; },
-      onComplete() {
-        el.style.transform = "rotate(0deg)";
-        completed++;
-        if (completed === chips.length) {
-          setTimeout(() => {
-            ttbResetChips();
-            placeholderEl.textContent = "Try again...";
-            placeholderEl.style.display = "inline";
-            updateTtbUI(); // re-evaluate skip visibility after incorrect
-          }, 200);
-        }
+    pmAnimate(0, [4, -4, 3, -3, 2, -2, 0], {
+      duration: 0.5,
+      onUpdate(v) { el.style.transform = `rotate(${v}deg)`; }
+    }).then(() => {
+      el.style.transform = "rotate(0deg)";
+      completed++;
+      if (completed === chips.length) {
+        setTimeout(() => {
+          ttbResetChips();
+          placeholderEl.textContent = "Try again...";
+          placeholderEl.style.display = "inline";
+          updateTtbUI(); // re-evaluate skip visibility after incorrect
+        }, 200);
       }
     });
   });
@@ -1500,14 +1486,13 @@ function animateMatchIncorrect(btnA, btnB) {
     b.classList.remove("state-selected");
     b.classList.add("state-incorrect");
     b.style.transformOrigin = "center";
-    pmAnimate({
-      from: 0, to: [4, -4, 3, -3, 2, -2, 0], duration: 500,
-      onUpdate(v) { b.style.transform = `rotate(${v}deg)`; },
-      onComplete() {
-        b.style.transform = "";
-        b.style.transformOrigin = "";
-        b.classList.remove("state-incorrect");
-      }
+    pmAnimate(0, [4, -4, 3, -3, 2, -2, 0], {
+      duration: 0.5,
+      onUpdate(v) { b.style.transform = `rotate(${v}deg)`; }
+    }).then(() => {
+      b.style.transform = "";
+      b.style.transformOrigin = "";
+      b.classList.remove("state-incorrect");
     });
   });
   // Unlock immediately — animation plays in background
