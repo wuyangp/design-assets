@@ -142,14 +142,18 @@
   .code-block .f { color: #89B4FA; }
   .code-block .p { color: #F38BA8; }
   .code-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .code-toggle { margin-bottom: 16px; border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; }
+  .code-toggle summary {
+    font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 10px 14px; cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 6px;
+    background: var(--card);
+  }
+  .code-toggle summary::before { content: "▶"; font-size: 9px; transition: transform 0.15s; }
+  .code-toggle[open] summary::before { transform: rotate(90deg); }
+  .code-toggle summary::-webkit-details-marker { display: none; }
+  .code-toggle .code-block { margin: 0; border-radius: 0; border-top: 1px solid var(--card-border); }
 
   /* Links */
-  .links-card { display: flex; gap: 16px; flex-wrap: wrap; }
-  .link-item { flex: 1; min-width: 250px; padding: 16px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--card); }
-  .link-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .link-item p { font-size: 12px; color: var(--muted); line-height: 1.4; }
-  .link-item a { color: var(--accent); font-size: 12px; text-decoration: none; font-weight: 500; }
-  .link-item a:hover { text-decoration: underline; }
 
   /* States grid */
   .states-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
@@ -170,7 +174,7 @@
     cursor: pointer; outline: none; user-select: none;
     background: var(--btn-default-bg); border: 2px solid transparent;
     color: var(--btn-default-text); box-shadow: var(--btn-default-shadow);
-    min-height: 70px;
+    min-height: 72px;
     transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
   }
   /* Scale from center for all match buttons */
@@ -351,10 +355,6 @@
   .bubble-blank-inner { display: inline-block; width: 64px; height: 24px; background: #D9D9D9; border-radius: 4px; }
   .bubble-speaker-row { margin-top: 8px; }
   .bubble-speaker-icon { display: block; }
-  @keyframes bubbleBlink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
-  .bubble-cursor { color: #4F6BFF; font-weight: 300; animation: bubbleBlink 0.8s infinite; margin-left: 1px; }
-  .bubble-content-enter { opacity: 0; transition: opacity 0.4s ease; }
-  .bubble-content-enter.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -366,7 +366,7 @@
     <p>Conversation Lessons — Multi-select, Matching Pairs, Tap to Build exercises.<br>
     Animated button transitions for correct and incorrect answer states using Motion.</p>
     <div class="meta-row">
-      <span class="meta-tag"><strong>Library:</strong> motion@12.x</span>
+      <span class="meta-tag"><strong>Library:</strong> <a href="https://motion.dev" target="_blank" style="color: inherit; text-decoration: underline;">motion@12.x</a></span>
       <span class="meta-tag"><strong>Install:</strong> npm install motion</span>
       <span class="meta-tag"><strong>Framework:</strong> React 18+</span>
       <span class="meta-tag"><strong>Date:</strong> April 8, 2026</span>
@@ -377,7 +377,24 @@
   <div class="callout">
     <span class="callout-icon">⚠</span>
     <div class="callout-text">
-      <strong>This handoff covers interaction logic, animation specs, and motion only.</strong> All text styles, colors, fills, and visual styling are not included — please reference the <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=4193-31418&t=1He1WdvdMyUYCmgn-1" target="_blank">Figma file</a> directly for those. Layout specs (spacing, radius, shadow) are documented where relevant.
+      <strong>This handoff covers interaction logic, animation specs, and motion only.</strong> All text styles, colors, fills, and visual styling are not included — please reference the <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=4193-31418&t=1He1WdvdMyUYCmgn-1" target="_blank">Figma file</a> directly for those. Layout specs (spacing, radius) are documented where relevant.
+    </div>
+  </div>
+
+  <!-- ═══ MOTION INTRO ═══ -->
+  <div class="callout" style="background: #F0F4FF; border-color: #C7D2FE;">
+    <span class="callout-icon">🚀</span>
+    <div class="callout-text">
+      <strong>Animation Library — <a href="https://motion.dev" target="_blank">Motion</a> (motion.dev)</strong><br>
+      All animations in this handoff use <a href="https://motion.dev/docs/animate" target="_blank">Motion's <code>animate()</code> API</a> — a lightweight, production-grade JavaScript animation library. Here's what you need to know to get started:
+      <ul style="margin: 10px 0 0 0; padding-left: 18px; list-style: disc;">
+        <li style="margin-bottom: 6px;"><strong>Install:</strong> <code>npm install motion</code> — then <code>import { animate } from "motion"</code></li>
+        <li style="margin-bottom: 6px;"><strong>Core pattern:</strong> <code>animate(from, to, { type: "spring", stiffness, damping, onUpdate })</code> — drives a value between two numbers using spring physics, calling <code>onUpdate</code> every frame</li>
+        <li style="margin-bottom: 6px;"><strong>Completion:</strong> <code>animate(...).then(() => { })</code> — returns a promise that resolves when the animation finishes</li>
+        <li style="margin-bottom: 6px;"><strong>Keyframes:</strong> <code>animate(0, [4, -4, 3, -3, 0], { duration: 0.5 })</code> — pass an array as the <code>to</code> value to animate through multiple waypoints</li>
+        <li style="margin-bottom: 6px;"><strong>Duration:</strong> Always in <strong>seconds</strong> (not milliseconds) — e.g. <code>0.5</code> = 500ms</li>
+        <li><strong>Docs:</strong> <a href="https://motion.dev/docs/animate" target="_blank">animate()</a> · <a href="https://motion.dev/docs/react" target="_blank">React integration</a> · <a href="https://motion.dev/docs/quick-start" target="_blank">Quick start</a></li>
+      </ul>
     </div>
   </div>
 
@@ -394,7 +411,6 @@
       <li><a href="#sec-matching">7. Matching Pairs</a></li>
       <li><a href="#sec-tuner">8. Animation Tuner</a></li>
       <li><a href="#sec-react">9. React Component</a></li>
-      <li><a href="#sec-links">10. Reference Links</a></li>
     </ul>
   </nav>
 
@@ -446,7 +462,6 @@
         <tr><td>Padding</td><td><code>24px 16px</code></td><td></td></tr>
         <tr><td>Border radius</td><td><code>16px</code></td><td></td></tr>
         <tr><td>Text overflow</td><td><code>-webkit-line-clamp: 3</code></td><td>Truncate with ellipsis after 3 lines</td></tr>
-        <tr><td>Shadow (default/pressed/selected)</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)</code></td><td>Removed in correct/incorrect/disabled</td></tr>
       </tbody>
     </table>
   </div>
@@ -491,19 +506,14 @@
           <td><strong>Scale settle</strong></td>
           <td>Spring</td>
           <td><code>1.04 → 1.0</code></td>
-          <td><code>stiffness: 750, damping: 10</code> — quick snap settle with a little bounce</td>
-        </tr>
-        <tr>
-          <td><strong>Shadow</strong></td>
-          <td>Instant</td>
-          <td>Drop shadow → none</td>
-          <td>Removed with color change</td>
+          <td><code>stiffness: 750, damping: 18</code> — controlled settle with a touch of bounce</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="code-label">Motion Code</div>
-    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
+    <details class="code-toggle">
+      <summary>Motion Code — Correct Animation</summary>
+      <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="c">// 1. Snap color to green immediately</span>
 el.classList.add(<span class="s">"state-correct"</span>);
@@ -527,6 +537,7 @@ el.classList.add(<span class="s">"state-correct"</span>);
     }
   });
 });</div>
+    </details>
   </div>
 
   <hr>
@@ -558,8 +569,9 @@ el.classList.add(<span class="s">"state-correct"</span>);
       </tbody>
     </table>
 
-    <div class="code-label">Motion Code</div>
-    <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
+    <details class="code-toggle">
+      <summary>Motion Code — Incorrect Animation</summary>
+      <div class="code-block"><span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="c">// 1. Snap color to orange immediately</span>
 el.classList.add(<span class="s">"state-incorrect"</span>);
@@ -577,6 +589,7 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
   el.classList.add(<span class="s">"state-disabled"</span>);
   el.disabled = <span class="n">true</span>;
 });</div>
+    </details>
   </div>
 
   <hr>
@@ -605,47 +618,28 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
         <tr><td>Background</td><td><code>#FFFFFF</code></td></tr>
         <tr><td>Border radius</td><td><code>18px</code></td></tr>
         <tr><td>Padding</td><td><code>12px 16px</code></td></tr>
-        <tr><td>Shadow</td><td><code>0 1px 6px rgba(0,0,0,0.08)</code></td></tr>
         <tr><td>Max width</td><td><code>260px</code></td></tr>
         <tr><td>Resize easing</td><td><code>0.35s cubic-bezier(0.4, 0, 0.2, 1)</code></td></tr>
       </tbody>
     </table>
 
-    <h3>Streaming Specs (Option 1)</h3>
+    <h3>Streaming Specs</h3>
     <table class="spec-table">
       <thead><tr><th>Property</th><th>Value</th></tr></thead>
       <tbody>
         <tr><td>Character delay</td><td><code>45–85ms</code> (random jitter)</td></tr>
         <tr><td>Blank slot delay</td><td><code>80ms</code></td></tr>
-        <tr><td>Cursor color</td><td><code>#4F6BFF</code></td></tr>
-        <tr><td>Cursor blink</td><td><code>0.8s</code> infinite</td></tr>
         <tr><td>Blank slot size</td><td><code>64 × 24px</code>, <code>#D9D9D9</code>, <code>4px</code> radius</td></tr>
       </tbody>
     </table>
 
     <h3>Behavior</h3>
-    <table class="spec-table">
-      <thead><tr><th>Option</th><th>Flow</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>Option 1 — Sequential Streaming</strong></td>
-          <td>Loading dots → text streams character by character with blinking cursor → blank slot appears in sequence → speaker icon appears last. Bubble resizes dynamically as content streams in.</td>
-        </tr>
-        <tr>
-          <td><strong>Option 2 — Fallback (All at Once)</strong></td>
-          <td>Loading dots → all content (text, blank, speaker) appears simultaneously with a <code>0.4s</code> opacity fade-in. Bubble stretches to fit all content at once.</td>
-        </tr>
-      </tbody>
-    </table>
+    <p class="desc">Loading dots pulse while waiting for a response. Once content is ready, dots disappear and text streams in character by character (no cursor). Blank slots appear inline as the stream reaches them. The speaker icon appears last after all text has finished. The bubble resizes dynamically throughout — growing smoothly as each character and element is added.</p>
 
     <h3>Live Preview</h3>
     <div class="demo-card">
-      <div class="demo-area" style="flex-direction: row; gap: 48px; flex-wrap: wrap; justify-content: center; align-items: flex-start;">
-
-        <!-- Option 1: Sequential Streaming -->
+      <div class="demo-area" style="justify-content: center; align-items: flex-start;">
         <div class="bubble-prototype-col">
-          <div class="bubble-option-badge">Option 1 — Sequential Streaming</div>
-          <div class="bubble-option-desc">Loading dots → text streams character by character → blank appears in sequence → speaker appears. Bubble resizes dynamically.</div>
           <div class="bubble-zone">
             <div class="speech-bubble" id="bubble1">
               <div class="bubble-dots bubble-dots-animated" id="dots1">
@@ -661,33 +655,8 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
           </div>
           <button class="btn-reset" style="margin-top:12px;" onclick="restartBubbleOpt1()">Replay</button>
         </div>
-
-        <!-- Option 2: Fallback -->
-        <div class="bubble-prototype-col">
-          <div class="bubble-option-badge">Option 2 — Fallback (All at Once)</div>
-          <div class="bubble-option-desc">Loading dots → everything appears simultaneously → bubble stretches to fit all content at once.</div>
-          <div class="bubble-zone">
-            <div class="speech-bubble" id="bubble2">
-              <div class="bubble-dots bubble-dots-animated" id="dots2">
-                <span class="bubble-dot"></span><span class="bubble-dot"></span><span class="bubble-dot"></span>
-              </div>
-              <div id="bubbleContent2" class="bubble-content-enter" style="display:none;">
-                <div class="bubble-text-line">
-                  <span>Son </span>
-                  <span class="bubble-blank-slot"><span class="bubble-blank-inner"></span></span>
-                  <span> pesos.</span>
-                </div>
-                <div class="bubble-speaker-row">
-                  <svg class="bubble-speaker-icon" width="20" height="20" viewBox="0 0 20 20"><path d="M3 8v4h3l4 4V4L6 8H3z" fill="#888"/><path d="M13 7.5s1.5 1 1.5 2.5-1.5 2.5-1.5 2.5" stroke="#888" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button class="btn-reset" style="margin-top:12px;" onclick="restartBubbleOpt2()">Replay</button>
-        </div>
-
       </div>
-      <p class="tap-hint">Both options auto-play on page load. Use Replay to restart each animation.</p>
+      <p class="tap-hint">Auto-plays on page load. Tap Replay to restart the animation.</p>
     </div>
   </div>
 
@@ -719,7 +688,7 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
   <!-- ═══ SECTION 6: TAP TO BUILD ═══ -->
   <div class="section" id="sec-ttb">
     <h2>6. Tap-to-Build</h2>
-    <p class="desc">Chip-style word buttons that move between the word bank and the sentence area. Uses the same correct (scale pop) and incorrect (rotation jiggle) animations applied to all chips simultaneously. The chip button is smaller than the multi-choice button with a heavier shadow.</p>
+    <p class="desc">Chip-style word buttons that move between the word bank and the sentence area. Uses the same correct (scale pop) and incorrect (rotation jiggle) animations applied to all chips simultaneously.</p>
 
     <h3>Chip Button Specs</h3>
     <table class="spec-table">
@@ -728,7 +697,6 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
         <tr><td>Width</td><td><code>auto</code> (fits content)</td></tr>
         <tr><td>Padding</td><td><code>16px</code> (all sides)</td></tr>
         <tr><td>Height</td><td><code>54px</code> (auto)</td></tr>
-        <tr><td>Shadow</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 4px 18px rgba(0,0,0,0.08)</code></td></tr>
         <tr><td>Border radius</td><td><code>16px</code></td></tr>
       </tbody>
     </table>
@@ -768,8 +736,9 @@ el.classList.add(<span class="s">"state-incorrect"</span>);
     <h3>Animations (same as multi-choice)</h3>
     <p class="desc">Both animations are identical to the multi-choice button specs above, applied to every chip simultaneously (no stagger). The correct scale pop keeps the gap between chips — each chip scales individually, expanding its own width slightly. After an incorrect jiggle, chips reset back to the word bank.</p>
 
-    <div class="code-label">Tap-to-Build — Correct (all chips scale individually, gaps preserved)</div>
-    <div class="code-block"><span class="c">// Each chip scales independently — gaps between chips are preserved</span>
+    <details class="code-toggle">
+      <summary>Motion Code — Tap-to-Build Correct</summary>
+      <div class="code-block"><span class="c">// Each chip scales independently — gaps between chips are preserved</span>
 <span class="c">// The visual effect is that each word "pops" wider briefly</span>
 sentenceChips.forEach(el => {
   el.classList.add(<span class="s">"state-correct"</span>);
@@ -785,9 +754,11 @@ sentenceChips.forEach(el => {
     });
   });
 });</div>
+    </details>
 
-    <div class="code-label">Tap-to-Build — Incorrect (all chips → reset)</div>
-    <div class="code-block"><span class="k">let</span> completed = <span class="n">0</span>;
+    <details class="code-toggle">
+      <summary>Motion Code — Tap-to-Build Incorrect</summary>
+      <div class="code-block"><span class="k">let</span> completed = <span class="n">0</span>;
 sentenceChips.forEach(el => {
   el.classList.add(<span class="s">"state-incorrect"</span>);
   <span class="f">animate</span>(<span class="n">0</span>, [<span class="n">4</span>, <span class="n">-4</span>, <span class="n">3</span>, <span class="n">-3</span>, <span class="n">2</span>, <span class="n">-2</span>, <span class="n">0</span>], {
@@ -803,11 +774,13 @@ sentenceChips.forEach(el => {
     }
   });
 });</div>
+    </details>
 
     <h3>Chip Entrance Animation</h3>
     <p class="desc">When a chip moves into the sentence box, it plays a combined scale + slide-up spring animation for a tactile "landing" feel.</p>
-    <div class="code-label">Chip Entrance — Scale + Slide-up</div>
-    <div class="code-block"><span class="c">// Chip starts invisible, offset 8px below, at 92% scale</span>
+    <details class="code-toggle">
+      <summary>Motion Code — Chip Entrance</summary>
+      <div class="code-block"><span class="c">// Chip starts invisible, offset 8px below, at 92% scale</span>
 chip.style.opacity = <span class="s">"0"</span>;
 chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
 
@@ -822,6 +795,7 @@ chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
   chip.style.opacity = <span class="s">"1"</span>;
   chip.style.transform = <span class="s">""</span>;
 });</div>
+    </details>
 
     <h3>Submit &amp; Skip Buttons</h3>
     <p class="desc">Submit appears when the sentence box has at least one chip. It hides when the box is empty. Skip is always visible and resets the exercise.</p>
@@ -880,17 +854,16 @@ chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
       <thead><tr><th>Property</th><th>Value</th></tr></thead>
       <tbody>
         <tr><td>Width</td><td><code>181px</code> (half of container)</td></tr>
-        <tr><td>Height</td><td><code>70–72px</code></td></tr>
+        <tr><td>Min height</td><td><code>72px</code></td></tr>
         <tr><td>Padding</td><td><code>24px 16px</code></td></tr>
         <tr><td>Border radius</td><td><code>16px</code></td></tr>
         <tr><td>Gap between pair</td><td><code>8px</code></td></tr>
-        <tr><td>Shadow</td><td><code>0 0 2px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)</code></td></tr>
         <tr><td>Transform origin</td><td><code>center</code></td></tr>
       </tbody>
     </table>
 
     <h3>States</h3>
-    <p class="desc">Four states: Default (white), Selected (blue — <code>#DDE4FF</code> bg, <code>#8DA4FF</code> border, no shadow), Incorrect (orange), Correct (green). Same visual tokens as multi-choice. Refer to Figma for colors.</p>
+    <p class="desc">Four states: Default (white), Selected (blue — <code>#DDE4FF</code> bg, <code>#8DA4FF</code> border), Incorrect (orange), Correct (green). Same visual tokens as multi-choice. Refer to Figma for colors.</p>
 
     <h3>Animation Flow</h3>
     <div class="flow-diagram" style="flex-direction: column; gap: 16px;">
@@ -1052,8 +1025,8 @@ chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
             <input type="range" id="sl-down-stiff" min="50" max="800" step="50" value="750">
           </div>
           <div class="tuner-row">
-            <div class="tuner-label">Down Damping <span class="tuner-value" id="val-down-damp">26</span></div>
-            <input type="range" id="sl-down-damp" min="5" max="40" step="1" value="10">
+            <div class="tuner-label">Down Damping <span class="tuner-value" id="val-down-damp">18</span></div>
+            <input type="range" id="sl-down-damp" min="5" max="40" step="1" value="18">
           </div>
         </div>
       </div>
@@ -1065,7 +1038,7 @@ chip.style.transform = <span class="s">"translateY(8px) scale(0.92)"</span>;
 box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
 // Scale: 1.0 → 1.04  |  Peak hold: 20ms
 // Up spring:   stiffness 900, damping 33
-// Down spring: stiffness 750, damping 10</div>
+// Down spring: stiffness 750, damping 18</div>
     </div>
     </details>
   </div>
@@ -1077,8 +1050,9 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
     <h2>9. React Component</h2>
     <p class="desc">Ready-to-use React component implementing all states and both animations.</p>
 
-    <div class="code-label">AnimatedTapButton.tsx</div>
-    <div class="code-block"><span class="k">import</span> React, { useRef, useCallback } <span class="k">from</span> <span class="s">"react"</span>;
+    <details class="code-toggle" open>
+      <summary>AnimatedTapButton.tsx</summary>
+      <div class="code-block"><span class="k">import</span> React, { useRef, useCallback } <span class="k">from</span> <span class="s">"react"</span>;
 <span class="k">import</span> { <span class="f">animate</span> } <span class="k">from</span> <span class="s">"motion"</span>;
 
 <span class="k">type</span> ButtonState = <span class="s">"default"</span> | <span class="s">"pressed"</span> | <span class="s">"selected"</span> | <span class="s">"correct"</span> | <span class="s">"incorrect"</span> | <span class="s">"disabled"</span>;
@@ -1133,41 +1107,9 @@ box-shadow: 0 0 10px 0px rgba(41,193,149,0.2);
     &lt;/<span class="f">button</span>&gt;
   );
 }</div>
+    </details>
   </div>
 
-  <hr>
-
-  <!-- ═══ SECTION 10: REFERENCE LINKS ═══ -->
-  <div class="section" id="sec-links">
-    <h2>10. Reference Links</h2>
-    <div class="links-card">
-      <div class="link-item">
-        <h4>Figma — Button States</h4>
-        <p>Multi-choice button variants &amp; states</p>
-        <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=4193-31418&t=1He1WdvdMyUYCmgn-1" target="_blank">Open in Figma →</a>
-      </div>
-      <div class="link-item">
-        <h4>Figma — Matching Pair</h4>
-        <p>Matching pair buttons &amp; animation sequence</p>
-        <a href="https://www.figma.com/design/nLx51hrOS1bLdvFhUwgAYs/Conversation-Lessons?node-id=5428-42186" target="_blank">Open in Figma →</a>
-      </div>
-      <div class="link-item">
-        <h4>Motion — animate() API</h4>
-        <p>Animation library docs — spring, keyframes, onUpdate</p>
-        <a href="https://motion.dev/docs/animate" target="_blank">Open Docs →</a>
-      </div>
-      <div class="link-item">
-        <h4>Correct Animation Prototype</h4>
-        <p>Figma Make — scale pop spring animation</p>
-        <a href="https://www.figma.com/make/gdum4f3hpk2RSWajITKHen/Correct-button-animation" target="_blank">Open in Figma Make →</a>
-      </div>
-      <div class="link-item">
-        <h4>Incorrect Animation Prototype</h4>
-        <p>Figma Make — rotation jiggle animation</p>
-        <a href="https://www.figma.com/make/QCGSL4PPVG8hUJKUVRHXst/Incorrect-button-animation" target="_blank">Open in Figma Make →</a>
-      </div>
-    </div>
-  </div>
 
 </div>
 
@@ -1188,7 +1130,7 @@ const glowConfig = {
   upStiffness: 900,    // spring stiffness for scale-up — very snappy
   upDamping: 33,       // spring damping for scale-up
   downStiffness: 750,  // quick snap settle
-  downDamping: 10      // low damping — a little bounce on the way back
+  downDamping: 18      // controlled settle with a touch of bounce
 };
 
 // ── Color interpolation helper ──
@@ -1649,7 +1591,7 @@ box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
     slBlur.value = 10; slSpread.value = 0; slOpacity.value = 20; slScale.value = 4;
     clRest.value = "#94E0CA"; clPeak.value = "#29C195";
     slHold.value = 20; slUpStiff.value = 900; slUpDamp.value = 33;
-    slDownStiff.value = 750; slDownDamp.value = 10;
+    slDownStiff.value = 750; slDownDamp.value = 18;
     syncConfig();
   });
 })();
@@ -1663,24 +1605,15 @@ box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
   ];
 
   let opt1Timeouts = [];
-  let opt2Timeouts = [];
 
   function clearOpt1() { opt1Timeouts.forEach(t => clearTimeout(t)); opt1Timeouts = []; }
-  function clearOpt2() { opt2Timeouts.forEach(t => clearTimeout(t)); opt2Timeouts = []; }
 
   function streamBubbleSegments(segments, container, timeouts, onDone) {
     let segIdx = 0, charIdx = 0;
     function next() {
-      if (segIdx >= segments.length) {
-        const cur = container.querySelector(".bubble-cursor");
-        if (cur) cur.remove();
-        onDone();
-        return;
-      }
+      if (segIdx >= segments.length) { onDone(); return; }
       const seg = segments[segIdx];
       if (seg.type === "blank") {
-        const cur = container.querySelector(".bubble-cursor");
-        if (cur) cur.remove();
         const blankEl = document.createElement("span");
         blankEl.className = "bubble-blank-slot";
         blankEl.innerHTML = '<span class="bubble-blank-inner"></span>';
@@ -1693,8 +1626,6 @@ box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
       let spanId = "bseg-" + segIdx;
       let span = container.querySelector("#" + spanId);
       if (!span) {
-        const cur = container.querySelector(".bubble-cursor");
-        if (cur) cur.remove();
         span = document.createElement("span");
         span.id = spanId;
         span.style.whiteSpace = "pre-wrap";
@@ -1702,9 +1633,6 @@ box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
       }
       if (charIdx < seg.value.length) {
         span.textContent += seg.value[charIdx];
-        let cursor = container.querySelector(".bubble-cursor");
-        if (!cursor) { cursor = document.createElement("span"); cursor.className = "bubble-cursor"; cursor.textContent = "|"; }
-        container.appendChild(cursor);
         charIdx++;
         const delay = 45 + Math.random() * 40;
         const t = setTimeout(next, delay);
@@ -1734,25 +1662,8 @@ box-shadow: 0 0 ${glowConfig.blur}px ${glowConfig.spread}px ${shadowStr};
     opt1Timeouts.push(t1);
   };
 
-  window.restartBubbleOpt2 = function() {
-    clearOpt2();
-    const dots = document.getElementById("dots2");
-    const content = document.getElementById("bubbleContent2");
-    dots.style.display = "flex";
-    content.style.display = "none";
-    content.classList.remove("show");
-    const t1 = setTimeout(() => {
-      dots.style.display = "none";
-      content.style.display = "block";
-      const t2 = setTimeout(() => { content.classList.add("show"); }, 30);
-      opt2Timeouts.push(t2);
-    }, 2000);
-    opt2Timeouts.push(t1);
-  };
-
-  // Auto-start both bubble demos
+  // Auto-start bubble demo
   window.restartBubbleOpt1();
-  window.restartBubbleOpt2();
 })();
 </script>
 </body>
